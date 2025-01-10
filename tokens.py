@@ -47,7 +47,7 @@ def drawToken(canvas, x, y, shape, size, color, isHole):
             hole_size = shapeSize // 2
             x_hole = x + (shapeSize - hole_size) // 2
             y_hole = y + (shapeSize - hole_size) // 2
-            canvas.create_oval(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = color)
+            canvas.create_oval(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = fill)
             
     #Need to draw a sqaure if shape == "square"
     elif shape == "square":
@@ -57,7 +57,7 @@ def drawToken(canvas, x, y, shape, size, color, isHole):
             hole_size = shapeSize // 2
             x_hole = x + (shapeSize - hole_size) // 2
             y_hole = y + (shapeSize - hole_size) // 2
-            canvas.create_rectangle(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = color)
+            canvas.create_rectangle(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = fill)
     else:
         raise ValueError(f"{shape} is invalid... it needs to be a circle or a square")
         
