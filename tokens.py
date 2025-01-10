@@ -43,9 +43,23 @@ def drawToken(canvas, x, y, shape, size, color, isHole):
     if shape == "circle": 
         canvas.create_oval(x, y, x + shapeSize, y + shapeSize, fill=fill)
         #Need to draw a circular hole if isHole == True
-        
+        if isHole: 
+            hole_size = shapeSize // 2
+            x_hole = x + (shapeSize - hole_size) // 2
+            y_hole = y + (shapeSize - hole_size) // 2
+            canvas.create_oval(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = "blue")
+            
     #Need to draw a sqaure if shape == "square"
-    #Need to draw a square hole if isHole == True
+    elif shape == "square":
+        canvas.create_rectangle(x, y, x + shapeSize, y + shapeSize, fill=fill)
+        #Need to draw a square hole if isHole == True
+        if isHole: 
+            hole_size = shapeSize // 2
+            x_hole = x + (shapeSize - hole_size) // 2
+            y_hole = y + (shapeSize - hole_size) // 2
+            canvas.create_rectangle(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = "blue")
+    else:
+        raise ValueError(f"{shape} is invalid... it needs to be a circle or a square")
         
     
     
@@ -58,5 +72,7 @@ if __name__ == "__main__":
     
     token1 = drawToken(canvas, 50, 50, "circle", "small", "blue", isHole = True)
     token2 = drawToken(canvas, 50, 200, "circle", "large", "red", isHole = False)
+    token3 = drawToken(canvas, 50, 50, "square", "small", "blue", isHole = True)
+    token4 = drawToken(canvas, 350, 50, "square", "large", "red", isHole = False)
     #Once finished, need to draw all 16 shape possibilities
     root.mainloop()
