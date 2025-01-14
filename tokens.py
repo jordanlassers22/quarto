@@ -151,6 +151,7 @@ if __name__ == "__main__":
 
     drawBoard(canvas)
     
+    """
     #Just testing that these pieces can be drawn using new method. They can be moved when drawBoard is implimented.
     token1 = drawPiece(canvas, 50, 50, "small_blue_circle")
     token2 = drawPiece(canvas, 150, 50, "large_blue_circle")
@@ -160,7 +161,7 @@ if __name__ == "__main__":
     token6 = drawPiece(canvas, 150, 150, "large_blue_square")
     token7 = drawPiece(canvas, 250, 150, "small_red_square")
     token8 = drawPiece(canvas, 350, 150, "large_red_square")
-    
+
     token9 = drawPiece(canvas, 50, 250, "small_blue_circle_hole")
     token10 = drawPiece(canvas, 150, 250, "large_blue_circle_hole")
     token11 = drawPiece(canvas, 250, 250, "small_red_circle_hole")
@@ -169,5 +170,22 @@ if __name__ == "__main__":
     token14 = drawPiece(canvas, 150, 350, "large_blue_square_hole")
     token15 = drawPiece(canvas, 250, 350, "small_red_square_hole")
     token16 = drawPiece(canvas, 350, 350, "large_red_square_hole")
+    """
+
+    tokens = ["small_blue_circle", "small_blue_circle_hole", "large_blue_circle", "large_blue_circle_hole",
+          "small_red_circle", "small_red_circle_hole", "large_red_circle", "large_red_circle_hole",
+          "small_blue_square", "small_blue_square_hole", "large_blue_square", "large_blue_square_hole",
+          "small_red_square", "small_red_square_hole", "large_red_square", "large_red_square_hole"]
+
+
+    token_x = 550  # Starting x-coordinate for pieces
+    token_y = 100  # Starting y-coordinate for pieces
+    spacing = 100  # Spacing between pieces
+    columns = 2
+
+    for index, token in enumerate(tokens):
+        x = token_x + (index % columns) * spacing
+        y = token_y + (index // columns) * spacing
+        drawPiece(canvas, x, y, token)
     
     root.mainloop()
