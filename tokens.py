@@ -115,7 +115,9 @@ def drawShape(canvas, x, y, shape, size, color, isHole):
             canvas.create_rectangle(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = fill)
     else:
         raise ValueError(f"{shape} is invalid... it needs to be a circle or a square")
-        
+
+# Needs to be updated. I chose top left coordinates of each square just to get started,
+# but it needs to be updated so the pieces fit better into each square
 def drawBoard(canvas):
     """
     *Needs Implimented. Will draw an empty 4x4 gameboard on the canvas.
@@ -133,23 +135,49 @@ def drawBoard(canvas):
     cell = 100
     grid = 4
 
-    for i in range(grid + 1):
-        #horizontal lines
-        canvas.create_line(board_x, board_y + i * cell, board_x + grid * cell,
-            board_y + i * cell, width=4)
-        #vertical lines
-        canvas.create_line(board_x + i * cell, board_y, board_x + i * cell,
-            board_y + grid * cell, width=4)
-    
+    # Create dictionary for each square
+    center_coords = {}
 
+    # Each square has a column and row
+    columns = ['A', 'B', 'C', 'D']
+    for row in range(grid):
+        for col in range(grid):
+            # Calculate the center coords of the current square
+            top_left_x = board_x + col * cell
+            top_left_y = board_y + row * cell
+
+            # Create the label for the square 
+            label = f"{columns[col]}{row + 1}"
+
+            # Add to dict
+            center_coords[label] = (top_left_x, top_left_y)
+
+            # Draw each square
+            canvas.create_rectangle(
+                board_x + col * cell, board_y + row * cell,
+                board_x + (col + 1) * cell, board_y + (row + 1) * cell,
+                outline="black", width=2
+            )
+
+    # Return coords
+    return center_coords
+
+def place_piece(canvas, center_coords, square, token):
+    """ Draw piece on the board """
+    if square in center_coords:
+        x, y = center_coords[square]
+        drawPiece(canvas, x, y, token)
+    else:
+        print("Incorrect token format")
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game Tokens")
-    canvas = tk.Canvas(root, width=800, height=800)
+    canvas = tk.Canvas(root, width=1000, height=600)
     canvas.pack()
 
-    drawBoard(canvas)
+    # Get squares
+    coords = drawBoard(canvas)
     
     """
     #Just testing that these pieces can be drawn using new method. They can be moved when drawBoard is implimented.
@@ -172,20 +200,30 @@ if __name__ == "__main__":
     token16 = drawPiece(canvas, 350, 350, "large_red_square_hole")
     """
 
+    """
+    # Changed tokens from this for debug reasons, but we can always go back to this
     tokens = ["small_blue_circle", "small_blue_circle_hole", "large_blue_circle", "large_blue_circle_hole",
           "small_red_circle", "small_red_circle_hole", "large_red_circle", "large_red_circle_hole",
           "small_blue_square", "small_blue_square_hole", "large_blue_square", "large_blue_square_hole",
           "small_red_square", "small_red_square_hole", "large_red_square", "large_red_square_hole"]
+    """
 
+    tokens = ["small_blue_circle", "small_blue_circle_hole", "large_blue_circle", "large_blue_circle_hole",
+              "small_blue_square", "small_blue_square_hole", "large_blue_square", "large_blue_square_hole",
+              "small_red_circle", "small_red_circle_hole", "large_red_circle", "large_red_circle_hole",
+              "small_red_square", "small_red_square_hole", "large_red_square", "large_red_square_hole"]
 
     token_x = 550  # Starting x-coordinate for pieces
     token_y = 100  # Starting y-coordinate for pieces
     spacing = 100  # Spacing between pieces
-    columns = 2
+    columns = 4 # 2 columns pushed pieces off the board
 
     for index, token in enumerate(tokens):
         x = token_x + (index % columns) * spacing
         y = token_y + (index // columns) * spacing
         drawPiece(canvas, x, y, token)
+
+    # test
+    # place_piece(canvas, coords, "A1", tokens[3])
     
     root.mainloop()
