@@ -127,7 +127,19 @@ def drawBoard(canvas):
     -------
     None.
     """
-        
+    #sizing the board
+    board_x = 100
+    board_y = 100
+    cell = 100
+    grid = 4
+
+    for i in range(grid + 1):
+        #horizontal lines
+        canvas.create_line(board_x, board_y + i * cell, board_x + grid * cell,
+            board_y + i * cell, width=4)
+        #vertical lines
+        canvas.create_line(board_x + i * cell, board_y, board_x + i * cell,
+            board_y + grid * cell, width=4)
     
 
 
@@ -136,6 +148,8 @@ if __name__ == "__main__":
     root.title("Quarto Game Tokens")
     canvas = tk.Canvas(root, width=800, height=800)
     canvas.pack()
+
+    drawBoard(canvas)
     
     #Just testing that these pieces can be drawn using new method. They can be moved when drawBoard is implimented.
     token1 = drawPiece(canvas, 50, 50, "small_blue_circle")
