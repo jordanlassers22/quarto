@@ -168,7 +168,7 @@ def place_piece(canvas, center_coords, square, token):
         x, y = center_coords[square]
         drawPiece(canvas, x, y, token)
     else:
-        print("Incorrect token format")
+        print("Incorrect square format")
 
 if __name__ == "__main__":
     root = tk.Tk()
