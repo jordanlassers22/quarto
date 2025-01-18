@@ -1,123 +1,166 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
+import math
 
-def drawPiece(canvas, x, y, piece):
+class Token:
     """
-    Draws a specified gamepiece onto the canvas at inputted coordinates.
-    Parameters
-    ----------
-    canvas : TK Object
-        Canvas that shape will be drawn on.
-    x : int
-        Coordinate.
-    y : int
-        Coordinate.
-    piece : string
-        Name of game piece that will be drawn. Options are:
-            small_blue_circle, small_blue_circle_hole,
-            large_blue_circle, large_blue_circle_hole,
-            small_red_circle, small_red_circle_hole,
-            large_red_circle, large_red_circle_hole,
-            small_blue_square, small_blue_square_hole,
-            large_blue_square, large_blue_square_hole,
-            small_red_square, small_red_square_hole,
-            large_red_square, large_red_square_hole,
-    Returns
-    -------
-    None.
-    """
-    if piece == "small_blue_circle":
-        drawShape(canvas, x, y, "circle", "small", "blue", isHole = False)
-    elif piece == "large_blue_circle":
-        drawShape(canvas, x, y, "circle", "large", "blue", isHole = False)
-    elif piece == "small_red_circle":
-        drawShape(canvas, x, y, "circle", "small", "red", isHole = False)
-    elif piece == "large_red_circle":
-        drawShape(canvas, x, y, "circle", "large", "red", isHole = False)
-    elif piece == "small_blue_square":
-        drawShape(canvas, x, y, "square", "small", "blue", isHole = False)
-    elif piece == "large_blue_square":
-        drawShape(canvas, x, y, "square", "large", "blue", isHole = False) 
-    elif piece == "small_red_square":
-        drawShape(canvas, x, y, "square", "small", "red", isHole = False)
-    elif piece == "large_red_square":
-        drawShape(canvas, x, y, "square", "large", "red", isHole = False)
-    elif piece == "small_blue_circle_hole":
-        drawShape(canvas, x, y, "circle", "small", "blue", isHole = True)
-    elif piece == "large_blue_circle_hole":
-        drawShape(canvas, x, y, "circle", "large", "blue", isHole = True) 
-    elif piece == "small_red_circle_hole":
-        drawShape(canvas, x, y, "circle", "small", "red", isHole = True)
-    elif piece == "large_red_circle_hole":
-        drawShape(canvas, x, y, "circle", "large", "red", isHole = True)
-    elif piece == "small_blue_square_hole":
-        drawShape(canvas, x, y, "square", "small", "blue", isHole = True)
-    elif piece == "large_blue_square_hole":
-        drawShape(canvas, x, y, "square", "large", "blue", isHole = True)
-    elif piece == "small_red_square_hole":
-        drawShape(canvas, x, y, "square", "small", "red", isHole = True)
-    elif piece == "large_red_square_hole":
-        drawShape(canvas, x, y, "square", "large", "red", isHole = True)
+   Represents a game token that can be placed on a board.
+
+   Attributes:
+   _x : int
+       The x-coordinate of the top-left corner of the token.
+   _y : int
+       The y-coordinate of the top-left corner of the token.
+   color : str
+       The color of the token ("blue" or "red").
+   has_hole : bool
+       Indicates whether the token has a hole in the middle.
+   size : str
+       The size of the token, either "small" or "large".
+   diameter : int
+       The diameter of the token in pixels (70 for "small", 45 for "large").
+   shape : str
+       The shape of the token, either "circle" or "square".
+   centerCords : tuple
+       The (x, y) coordinates of the center of the token.
+
+   Methods:
+   getX()
+       Returns the x-coordinate of the token's top-left corner.
+   getY()
+       Returns the y-coordinate of the token's top-left corner.
+   setX(newX)
+       Updates the x-coordinate of the token's top-left corner and recalculates its center.
+   setY(newY)
+       Updates the y-coordinate of the token's top-left corner and recalculates its center.
+   updateCords(newX, newY)
+       Updates both the x- and y-coordinates of the token's top-left corner and recalculates its center.
+   getCords()
+       Returns the (x, y) coordinates of the token's top-left corner.
+   _updateCenterCords()
+       Recalculates the token's center coordinates based on its current position.
+   """
+
+
+    def __init__(self, x, y, color, has_hole, size, shape="circle"):
+        """
+        Initialize a Token instance.
         
-def drawShape(canvas, x, y, shape, size, color, isHole):
-    """
-    A helper function that takes in different shape properties and draws them.
-    Parameters
-    ----------
-    canvas : TK Object
-        Canvas that shape will be drawn on.
-    x : int
-        Coordinate.
-    y : int
-        Coordinate.
-    shape : string
-        Type of shape that should be drawn. Options are circle or sqaure.
-    size : string
-        Size of shape. Options are small or large.
-    color : string
-        Color of shape. Options are blue or red.
-    center : bool
-        Whether shape has a hole. Circle shape can have a circular hole. Square shape can have a square hole.
-    Returns
-    -------
-    None.
+        Parameters:
+        ----------
+        _x : int
+            The x-coordinate of the top left of the token.
+        _y : int
+            The y-coordinate of the top left of token.
+        color : str
+            The color of the token (e.g., "blue", "red").
+        has_hole : bool
+            Whether the token has a hole in the middle.
+        size : str
+            The size of the token ("small" or "large").
+        shape : str
+            The shape of the token ("circle" or "square"). Default is "circle".
+        """
+        self._x = x
+        self._y = y
+        self.color = color
+        self.has_hole = has_hole
+        self.shape = shape
+        
+        if size == "small":
+            self.size = size
+            self.diameter = 70
+        elif size == "large":
+            self.size = size
+            self.diameter = 45
+        else:
+            raise ValueError("Size must be 'small' or 'large'.")
 
-    """
-    if size.lower() == "large":
-        shapeSize = 70
-    elif size.lower() == "small":
-        shapeSize = 45
-    else:
-        raise ValueError(f"{size} is an invalid parameter. Size must either be 'small' or 'large'")
+        
+        self._updateCenterCords()
     
-    if color.lower() == "blue":
-        fill = "blue"
-    elif color.lower() == "red":
-        fill = "red"
-    else:
-        raise ValueError(f"{color} is an invalid parameter. Color must either be 'blue' or 'red'")
+    def getX(self):
+        return self._x
+    
+    def getY(self):
+        return self._y
+    
+    def setY(self, newY):
+        """Use setter to ensure self.centerCords value is updated."""
+        self._y = newY
+        self._updateCenterCords()
         
-        
-    if shape == "circle": 
-        canvas.create_oval(x, y, x + shapeSize, y + shapeSize, fill=fill)
-        if isHole: 
-            hole_size = shapeSize // 2
-            x_hole = x + (shapeSize - hole_size) // 2
-            y_hole = y + (shapeSize - hole_size) // 2
-            canvas.create_oval(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = fill)
-            
-    elif shape == "square":
-        canvas.create_rectangle(x, y, x + shapeSize, y + shapeSize, fill=fill)
-        if isHole: 
-            hole_size = shapeSize // 2
-            x_hole = x + (shapeSize - hole_size) // 2
-            y_hole = y + (shapeSize - hole_size) // 2
-            canvas.create_rectangle(x_hole, y_hole, x_hole + hole_size, y_hole + hole_size, fill = fill)
-    else:
-        raise ValueError(f"{shape} is invalid... it needs to be a circle or a square")
+    def setX(self, newX):
+        """Use setter to ensure self.centerCords value is updated."""
+        self._x = newX
+        self._updateCenterCords()
 
-# Needs to be updated. I chose top left coordinates of each square just to get started,
-# but it needs to be updated so the pieces fit better into each square
+        
+    def updateCords(self, newX, newY):
+        """Use setter to ensure self.centerCords value is updated."""
+        self._x = newX
+        self._y = newY
+        self._updateCenterCords()
+        
+    def getCords(self):
+        return self._x, self._y
+    
+    def _updateCenterCords(self):
+        self.centerCords = (self._x + self.diameter // 2, self._y + self.diameter // 2)
+
+        
+
+def drawToken(canvas, token, gridCoords=None, square=None):
+    """
+    Draws a token on the canvas. If a grid square is specified, it will place the token in that square. Allows for both initial placement of tokens, and for drawing them on board.
+    
+    Parameters
+    ----------
+    canvas : tkinter Canvas
+        The canvas on which to draw the token.
+    token : Token
+        The token instance to draw.
+    optional gridCoords : dict,
+        Dictionary of grid square coordinates.
+    optional square : str
+        The grid square label ("A1") where the token should be placed.
+    
+    Returns
+    -------
+    None
+    """
+    
+    # Use grid square if placing piece on board
+    if gridCoords and square:
+        if square in gridCoords:
+            token.updateCords(gridCoords[square][0],gridCoords[square][1])
+            # Adjust position to center the token within the square
+            token.setX(token.getX() + (100 - token.diameter) // 2)
+            token.setY( token.getY() + (100 - token.diameter) // 2)
+        else:
+            print(f"Invalid square: {square}")
+            return
+
+    # Draw the token's shape
+    if token.shape == "circle":
+        canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill=token.color)
+        if token.has_hole: #Decided to hollow out shape using white fill.
+            hole_diameter = token.diameter // 2
+            holeX = token.getX() + (token.diameter - hole_diameter) // 2
+            holeY = token.getY() + (token.diameter - hole_diameter) // 2
+            canvas.create_oval(holeX, holeY, holeX + hole_diameter, holeY + hole_diameter, fill="white")
+            
+    elif token.shape == "square":
+        canvas.create_rectangle(
+            token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill=token.color)
+        if token.has_hole:
+            hole_diameter = token.diameter // 2
+            holeX = token.getX() + (token.diameter - hole_diameter) // 2
+            holeY = token.getY() + (token.diameter - hole_diameter) // 2
+            canvas.create_rectangle(holeX, holeY, holeX + hole_diameter, holeY + hole_diameter, fill="white")
+    else:
+        print(f"Invalid shape: {token.shape}")
+
 def drawBoard(canvas):
     """
     *Needs Implimented. Will draw an empty 4x4 gameboard on the canvas.
@@ -162,68 +205,75 @@ def drawBoard(canvas):
     # Return coords
     return center_coords
 
-def place_piece(canvas, center_coords, square, token):
-    """ Draw piece on the board """
-    if square in center_coords:
-        x, y = center_coords[square]
-        drawPiece(canvas, x, y, token)
-    else:
-        print("Incorrect square format")
+def isOnToken(mouseX, mouseY, unplacedTokenList):
+    """Helper function. Can be used with highlightToken and other functions that require users mouse to be inside of a token for an action."""
+        
+    #Checks to see if mouse is inside any token
+    for token in unplacedTokenList:
+        centerX, centerY = token.centerCords
+        tokenRadius = token.diameter // 2
+        #Calculate the distance from token center to mouse
+        distance = math.sqrt((mouseX - centerX) ** 2 + (mouseY - centerY) ** 2)
+        #If the calculated distance is smaller than the radius of the token, the mouse must be inside the token.
+        if distance <= tokenRadius:
+            return token
+        
+def highlightToken(event):
+    mouseX = event.x
+    mouseY =  event.y
+    token = isOnToken(mouseX, mouseY, unplacedTokenList)
+    canvas.delete("highlight") #Deletes the highlight if mouse no longer inside token.
+    if token: #If token detected, highlight it.
+        if token.shape == "circle":
+            canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
+        else:
+            canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
+
+    return None
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game Tokens")
     canvas = tk.Canvas(root, width=1000, height=600)
     canvas.pack()
+    placed_board_pieces = [] #list of objects that have been placed on board
+    
 
     # Get squares
-    coords = drawBoard(canvas)
+    dict_coords = drawBoard(canvas)
     
-    """
-    #Just testing that these pieces can be drawn using new method. They can be moved when drawBoard is implimented.
-    token1 = drawPiece(canvas, 50, 50, "small_blue_circle")
-    token2 = drawPiece(canvas, 150, 50, "large_blue_circle")
-    token3 = drawPiece(canvas, 250, 50, "small_red_circle")
-    token4 = drawPiece(canvas, 350, 50, "large_red_circle")
-    token5 = drawPiece(canvas, 50, 150, "small_blue_square")
-    token6 = drawPiece(canvas, 150, 150, "large_blue_square")
-    token7 = drawPiece(canvas, 250, 150, "small_red_square")
-    token8 = drawPiece(canvas, 350, 150, "large_red_square")
+    unplacedTokenList = [
+    Token(550, 100, "blue", False, "small", "circle"),
+    Token(650, 100, "blue", True, "small", "circle"),
+    Token(750, 100, "blue", False, "large", "circle"),
+    Token(850, 100, "blue", True, "large", "circle"),
+    Token(550, 200, "blue", False, "small", "square"),
+    Token(650, 200, "blue", True, "small", "square"),
+    Token(750, 200, "blue", False, "large", "square"),
+    Token(850, 200, "blue", True, "large", "square"),
+    Token(550, 300, "red", False, "small", "circle"),
+    Token(650, 300, "red", True, "small", "circle"),
+    Token(750, 300, "red", False, "large", "circle"),
+    Token(850, 300, "red", True, "large", "circle"),
+    Token(550, 400, "red", False, "small", "square"),
+    Token(650, 400, "red", True, "small", "square"),
+    Token(750, 400, "red", False, "large", "square"),
+    Token(850, 400, "red", True, "large", "square")
+    ]
+    
+    #Initially draws tokens on screen.
+    for token in unplacedTokenList:
+        drawToken(canvas, token)
+    
+    #How to draw token on canvas using new method. Please remove once no longer needed
+    # drawToken(canvas, unplacedTokenList[0], dict_coords, "A1")
+    # drawToken(canvas, unplacedTokenList[2], dict_coords, "B2")
+    # drawToken(canvas, unplacedTokenList[7], dict_coords, "C3")
+    # drawToken(canvas, unplacedTokenList[8], dict_coords, "D4")
+    
+    canvas.bind("<Motion>", highlightToken)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
 
-    token9 = drawPiece(canvas, 50, 250, "small_blue_circle_hole")
-    token10 = drawPiece(canvas, 150, 250, "large_blue_circle_hole")
-    token11 = drawPiece(canvas, 250, 250, "small_red_circle_hole")
-    token12 = drawPiece(canvas, 350, 250, "large_red_circle_hole")
-    token13 = drawPiece(canvas, 50, 350, "small_blue_square_hole")
-    token14 = drawPiece(canvas, 150, 350, "large_blue_square_hole")
-    token15 = drawPiece(canvas, 250, 350, "small_red_square_hole")
-    token16 = drawPiece(canvas, 350, 350, "large_red_square_hole")
-    """
 
-    """
-    # Changed tokens from this for debug reasons, but we can always go back to this
-    tokens = ["small_blue_circle", "small_blue_circle_hole", "large_blue_circle", "large_blue_circle_hole",
-          "small_red_circle", "small_red_circle_hole", "large_red_circle", "large_red_circle_hole",
-          "small_blue_square", "small_blue_square_hole", "large_blue_square", "large_blue_square_hole",
-          "small_red_square", "small_red_square_hole", "large_red_square", "large_red_square_hole"]
-    """
-
-    tokens = ["small_blue_circle", "small_blue_circle_hole", "large_blue_circle", "large_blue_circle_hole",
-              "small_blue_square", "small_blue_square_hole", "large_blue_square", "large_blue_square_hole",
-              "small_red_circle", "small_red_circle_hole", "large_red_circle", "large_red_circle_hole",
-              "small_red_square", "small_red_square_hole", "large_red_square", "large_red_square_hole"]
-
-    token_x = 550  # Starting x-coordinate for pieces
-    token_y = 100  # Starting y-coordinate for pieces
-    spacing = 100  # Spacing between pieces
-    columns = 4 # 2 columns pushed pieces off the board
-
-    for index, token in enumerate(tokens):
-        x = token_x + (index % columns) * spacing
-        y = token_y + (index // columns) * spacing
-        drawPiece(canvas, x, y, token)
-
-    # test
-    # place_piece(canvas, coords, "A1", tokens[3])
     
     root.mainloop()
