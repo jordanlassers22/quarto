@@ -243,7 +243,8 @@ if __name__ == "__main__":
     # Get squares
     dict_coords = drawBoard(canvas)
     
-    unplacedTokenList = [
+    placedTokenList = []
+    unplacedTokenList = [ #Be sure token is removed from list, and placed into placedTokenList when it is played.
     Token(550, 100, "blue", False, "small", "circle"),
     Token(650, 100, "blue", True, "small", "circle"),
     Token(750, 100, "blue", False, "large", "circle"),
