@@ -217,6 +217,8 @@ def isOnToken(mouseX, mouseY, unplacedTokenList):
         #If the calculated distance is smaller than the radius of the token, the mouse must be inside the token.
         if distance <= tokenRadius:
             return token
+    
+    return None
         
 def highlightToken(event):
     mouseX = event.x
@@ -224,12 +226,13 @@ def highlightToken(event):
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
     canvas.delete("highlight") #Deletes the highlight if mouse no longer inside token.
     if token: #If token detected, highlight it.
+        canvas.config(cursor="hand2")
         if token.shape == "circle":
             canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
         else:
             canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
-
-    return None
+    else:
+        canvas.config(cursor="arrow")
     
 
 if __name__ == "__main__":
