@@ -219,7 +219,17 @@ def isOnToken(mouseX, mouseY, unplacedTokenList):
             return token
     
     return None
-        
+    
+def isOnGrid(mouseX, mouseY, gridCoords):
+    """Helper Function. Will be used for place token to make sure mouse is over a grid slot"""
+    for label, (topLeftX, topLeftY) in gridCoords.items():
+        slot_size = 100  # Assuming each grid slot is 100x100
+        #checks mouse position accoriding to the grid
+        if (topLeftX <= mouseX <= topLeftX + slot_size and
+            topLeftY <= mouseY <= topLeftY + slot_size):
+            return label
+    return None
+    
 def highlightToken(event):
     mouseX = event.x
     mouseY =  event.y
@@ -233,7 +243,36 @@ def highlightToken(event):
             canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
     else:
         canvas.config(cursor="arrow")
-    
+        
+def selectToken(event):
+    """selects a token when clicked"""
+    global selected_token #a global variable that stores the selected token
+    mouseX = event.x
+    mouseY =  event.y
+    token = isOnToken(mouseX, mouseY, unplacedTokenList)
+    if token: #if the token is detected then it will be selecteed
+        selected_token = token
+        canvas.delete("select") #removes the prev. selection
+        if token.shape == "circle":
+            canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
+        else:
+            canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
+
+def placeToken(event):
+    """places the token in an unsused slot on the grid"""
+    global selected_token
+    if not selected_token: #if a token is not selected then leave
+        return
+    mouseX = event.x
+    mouseY =  event.y
+    grid = isOnGrid(mouseX, mouseY, dict_coords)
+    if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
+        print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
+        drawToken(canvas, selected_token, dict_coords, grid)
+        placed_board_pieces.append(grid)
+        unplacedTokenList.remove(selected_token)
+        selected_token = None #resets selected token
+        canvas.delete("select")#removes the tokens highlight
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -277,7 +316,10 @@ if __name__ == "__main__":
     # drawToken(canvas, unplacedTokenList[8], dict_coords, "D4")
     
     canvas.bind("<Motion>", highlightToken)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
+    canvas.bind("<Button-1>", selectToken)
+    canvas.bind("<ButtonRelease-1>", placeToken)
 
+    selected_token = None
 
     
     root.mainloop()
