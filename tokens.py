@@ -108,7 +108,13 @@ class Token:
     def _updateCenterCords(self):
         self.centerCords = (self._x + self.diameter // 2, self._y + self.diameter // 2)
 
-        
+    def id(self):
+        """ Get unique id for each token for when we keep track of score"""
+        size_code = 'S' if self.size == 'large' else 'L' # I don't know why i have to put s for large but that's what works for the code
+        color_code = self.color[0].upper()  # First letter of the color
+        shape_code = self.shape[0].upper()  # First letter of the shape
+        hole_code = '0' if self.has_hole else 'X'  # 0 for hole, X for no hole
+        return f"{size_code}{shape_code}{color_code}{hole_code}"   
 
 def drawToken(canvas, token, gridCoords=None, square=None):
     """
@@ -263,21 +269,38 @@ def placeToken(event):
     global selected_token
     if not selected_token: #if a token is not selected then leave
         return
+    
     mouseX = event.x
     mouseY =  event.y
     grid = isOnGrid(mouseX, mouseY, dict_coords)
     if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
         print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
+        print(f"{selected_token.id()} placed at {grid}") # debugging
+        deleteToken(canvas, selected_token)
         drawToken(canvas, selected_token, dict_coords, grid)
         placed_board_pieces.append(grid)
         unplacedTokenList.remove(selected_token)
         selected_token = None #resets selected token
         canvas.delete("select")#removes the tokens highlight
 
+def deleteToken(canvas, token):
+    """Deletes a token from the canvas."""
+    # Assuming the token is drawn using the method described in the drawToken function
+    if token.shape == "circle":
+        canvas.create_oval(
+            token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill="white", outline="white"
+        )
+    elif token.shape == "square":
+        canvas.create_rectangle(
+            token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill="white", outline="white"
+        )
+    else:
+        print(f"Invalid shape: {token.shape}")
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game Tokens")
-    canvas = tk.Canvas(root, width=1000, height=600)
+    canvas = tk.Canvas(root, width=1000, height=600, bg="white")
     canvas.pack()
     placed_board_pieces = [] #list of objects that have been placed on board
     
