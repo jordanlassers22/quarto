@@ -284,8 +284,7 @@ def placeToken(event):
         canvas.delete("select")#removes the tokens highlight
 
 def deleteToken(canvas, token):
-    """Deletes a token from the canvas."""
-    # Assuming the token is drawn using the method described in the drawToken function
+    """Deletes a token from canvas by drawing over it """
     if token.shape == "circle":
         canvas.create_oval(
             token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill="white", outline="white"
