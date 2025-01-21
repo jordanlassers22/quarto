@@ -235,18 +235,52 @@ def isOnGrid(mouseX, mouseY, gridCoords):
             topLeftY <= mouseY <= topLeftY + slot_size):
             return label
     return None
+
+def highlightBoth(event):
+    highlightToken(event)
+    highlightGrid(event)
+
+def highlightGrid(event):
+    """
+    Highlights a grid square when hovered over.
+    """
+    
+    
+    #Get the mouse coordinates
+    mouseX = event.x
+    mouseY = event.y
+    
+    token = isOnToken(mouseX, mouseY, unplacedTokenList)
+    if token:
+        return  # Skip grid highlighting if hovering over a token
+
+    #Check if the mouse is over a grid square
+    grid_label = isOnGrid(mouseX, mouseY, dict_coords)
+
+    #Remove the previous highlight
+    canvas.delete("grid-highlight")
+
+    if grid_label:
+        #Get the top-left corner of the grid square
+        topLeftX, topLeftY = dict_coords[grid_label]
+
+        #Highlight the square
+        slot_size = 100  #Assuming each grid slot is 100x100
+        canvas.create_rectangle(topLeftX, topLeftY, topLeftX + slot_size, topLeftY + slot_size,outline="yellow", width=3, tags="grid-highlight")
+
     
 def highlightToken(event):
+    """Highlights a token when it is hovered over"""
     mouseX = event.x
     mouseY =  event.y
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
-    canvas.delete("highlight") #Deletes the highlight if mouse no longer inside token.
+    canvas.delete("token-highlight") #Deletes the highlight if mouse no longer inside token.
     if token: #If token detected, highlight it.
         canvas.config(cursor="hand2")
         if token.shape == "circle":
-            canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
+            canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="token-highlight")
         else:
-            canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="highlight")
+            canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="yellow", width=3, tags="token-highlight")
     else:
         canvas.config(cursor="arrow")
         
@@ -307,7 +341,6 @@ if __name__ == "__main__":
     # Get squares
     dict_coords = drawBoard(canvas)
     
-    placedTokenList = []
     unplacedTokenList = [ #Be sure token is removed from list, and placed into placedTokenList when it is played.
     Token(550, 100, "blue", False, "small", "circle"),
     Token(650, 100, "blue", True, "small", "circle"),
@@ -331,15 +364,10 @@ if __name__ == "__main__":
     for token in unplacedTokenList:
         drawToken(canvas, token)
     
-    #How to draw token on canvas using new method. Please remove once no longer needed
-    # drawToken(canvas, unplacedTokenList[0], dict_coords, "A1")
-    # drawToken(canvas, unplacedTokenList[2], dict_coords, "B2")
-    # drawToken(canvas, unplacedTokenList[7], dict_coords, "C3")
-    # drawToken(canvas, unplacedTokenList[8], dict_coords, "D4")
-    
-    canvas.bind("<Motion>", highlightToken)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
+    canvas.bind("<Motion>", highlightBoth)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
+
 
     selected_token = None
 
