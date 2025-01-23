@@ -409,14 +409,53 @@ def check_diagonal(board, diagonal, characteristic):
         position = [(i,3-i) for i in range(4)] #top right to bottom left
 
     for row, column in position: #Make sure entire column contains tokens
-        if (board[row][column]) == None:
+        if board[row][column] == None:
             return False
         
-    letter_to_check = board[position[0][0]][position[1][1]][letter_index]
-    for row, column in position:  #make sure that the 4 in the row have all the same characteristics
+    letter_to_check = board[position[0][0]][position[0][1]][letter_index]
+    for row, column in position:  # Iterate over the diagonal and check for consistency
         if board[row][column][letter_index] != letter_to_check:
             return False
     return True
+
+def check_win(board, characteristic):
+    """ Check a win for a specific characteristic in one way """
+    # Check all rows for a win
+    for row in range(4):
+        if check_row(board, row, characteristic):
+            return True
+    
+    # Check all columns for a win
+    for col in range(4):
+        if check_column(board, col, characteristic):
+            return True
+    
+    # Check the first diagonal
+    if check_diagonal(board, "first_diagonal", characteristic):
+        return True
+    
+    # Check the second diagonal
+    if check_diagonal(board, "second_diagonal", characteristic):
+        return True
+    
+    # If no win found, return False
+    return False
+
+def check_win_in_any_position(board):
+    """ Checks if a player has won based on any of the four characteristics: size, shape, color, or hole. """
+    characteristics = ["size", "shape", "color", "hole"]
+    
+    # Loop through each characteristic
+    for characteristic in characteristics:
+        if check_win(board, characteristic):
+            return True
+
+    # Return False if no win is found for any characteristic
+    return False
+
+def check_board_button_function():
+    print(check_win_in_any_position(board))
+
 def check_board_state():
     for row in board:
         print(row)
@@ -464,10 +503,8 @@ if __name__ == "__main__":
         drawToken(canvas, token)
         
     #The following buttons are for debugging and will be removed before final submision of project.
-    row_button = tk.Button(root, text="Check row 1 for size", command=check_row_button_function) #For testing purposes. Can be changed to test other win_check functions.
+    row_button = tk.Button(root, text="Check for win", command=check_board_button_function) #For testing purposes. Can be changed to test other win_check functions.
     row_button.pack(pady=5)
-    column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
-    column_button.pack(pady=5)
     check_board_button = tk.Button(root, text="Check board state", command=check_board_state)
     check_board_button.pack(pady=5)
     
