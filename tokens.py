@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
 import math
-
+from tkinter import messagebox
 class Token:
     """
    Represents a game token that can be placed on a board.
@@ -108,10 +108,10 @@ class Token:
     def _updateCenterCords(self):
         self.centerCords = (self._x + self.diameter // 2, self._y + self.diameter // 2)
 
-    def id(self):
+    def get_id(self):
         """ Get unique id for each token for when we keep track of score"""
         size_code = 'S' if self.size == 'large' else 'L' # I don't know why i have to put s for large but that's what works for the code
-        color_code = self.color[0].upper()  # First letter of the color
+        color_code = self.color[0].upper()  # First letter of the color 
         shape_code = self.shape[0].upper()  # First letter of the shape
         hole_code = '0' if self.has_hole else 'X'  # 0 for hole, X for no hole
         return f"{size_code}{shape_code}{color_code}{hole_code}"   
@@ -309,7 +309,9 @@ def placeToken(event):
     grid = isOnGrid(mouseX, mouseY, dict_coords)
     if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
         print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
-        print(f"{selected_token.id()} placed at {grid}") # debugging
+        print(f"{selected_token.get_id()} placed at {grid}") # debugging
+        row, col = int(grid[1]) - 1, ord(grid[0]) - ord('A')
+        board[row][col] = selected_token.get_id()  # Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
         deleteToken(canvas, selected_token)
         drawToken(canvas, selected_token, dict_coords, grid)
         placed_board_pieces.append(grid)
@@ -329,6 +331,44 @@ def deleteToken(canvas, token):
         )
     else:
         print(f"Invalid shape: {token.shape}")
+        
+def check_row(board, row, characteristic):
+    #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
+    for token_id in board[row]:
+        if token_id == None:
+            return False
+    
+    if characteristic == "size":
+        letter_index = 0
+    elif characteristic == "shape":
+        letter_index = 1 
+    elif characteristic == "color":
+        letter_index = 2
+    elif characteristic == "hole":
+        letter_index = 3
+    else:
+        raise ValueError(f"Must insert valid characteristic for check_row. Options are: size, shape, color, hole. You entered: {characteristic} ")
+    
+    letter_to_check = board[row][0][letter_index]
+    
+    # Check each token in the row
+    for token_id in board[row]:
+        if token_id[letter_index] != letter_to_check:
+            return False
+    
+    return True #Returns True if every specific letter from token id matches. Can target different id letters by changing the index.
+        
+def check_row_button_function():
+    print(check_row(board, 0, "size"))
+    
+# def check_column(board, column, characteristic):
+#     #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
+#     for row in range(4):
+#         print(board[row][column])
+    
+# def check_column_button_function():
+#     (check_column(board, 0, "size"))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -336,6 +376,14 @@ if __name__ == "__main__":
     canvas = tk.Canvas(root, width=1000, height=600, bg="white")
     canvas.pack()
     placed_board_pieces = [] #list of objects that have been placed on board
+    
+    board = [] # Represents our board. Starts out as None for all items.
+    for _ in range(4):
+        row = []
+        for _ in range(4):
+            row.append(None)
+        board.append(row)
+
     
 
     # Get squares
@@ -363,6 +411,11 @@ if __name__ == "__main__":
     #Initially draws tokens on screen.
     for token in unplacedTokenList:
         drawToken(canvas, token)
+        
+    row_button = tk.Button(root, text="Check row 1 for size", command=check_row_button_function) #For testing purposes. Can be changed to test other win_check functions.
+    row_button.pack(pady=10)
+    # column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
+    # column_button.pack(pady=10)
     
     canvas.bind("<Motion>", highlightBoth)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
     canvas.bind("<Button-1>", selectToken)
