@@ -386,6 +386,9 @@ def check_column(board, column, characteristic):
 def check_column_button_function():
     print(check_column(board, 0, "color"))
 
+def check_board_state():
+    for row in board:
+        print(row)
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -430,9 +433,11 @@ if __name__ == "__main__":
         drawToken(canvas, token)
         
     row_button = tk.Button(root, text="Check row 1 for size", command=check_row_button_function) #For testing purposes. Can be changed to test other win_check functions.
-    row_button.pack(pady=10)
+    row_button.pack(pady=5)
     column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
-    column_button.pack(pady=10)
+    column_button.pack(pady=5)
+    check_board_button = tk.Button(root, text="Check board state", command=check_board_state)
+    check_board_button.pack(pady=5)
     
     canvas.bind("<Motion>", highlightBoth)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
     canvas.bind("<Button-1>", selectToken)
