@@ -334,7 +334,7 @@ def deleteToken(canvas, token):
         
 def check_row(board, row, characteristic):
     #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
-    for token_id in board[row]:
+    for token_id in board[row]: #Make sure entire row contains tokens.
         if token_id == None:
             return False
     
@@ -361,13 +361,30 @@ def check_row(board, row, characteristic):
 def check_row_button_function():
     print(check_row(board, 0, "size"))
     
-# def check_column(board, column, characteristic):
-#     #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
-#     for row in range(4):
-#         print(board[row][column])
+def check_column(board, column, characteristic):
+    #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
+    for row in range(4): #Make sure entire column contains tokens
+        if (board[row][column]) == None:
+            return False
+    if characteristic == "size":
+        letter_index = 0
+    elif characteristic == "shape":
+        letter_index = 1 
+    elif characteristic == "color":
+        letter_index = 2
+    elif characteristic == "hole":
+        letter_index = 3
+    else:
+        raise ValueError(f"Must insert valid characteristic for check_row. Options are: size, shape, color, hole. You entered: {characteristic} ")
     
-# def check_column_button_function():
-#     (check_column(board, 0, "size"))
+    letter_to_check = board[0][column][letter_index]
+    for row in range(4): 
+        if board[row][column][letter_index] != letter_to_check:
+            return False
+    return True
+    
+def check_column_button_function():
+    print(check_column(board, 0, "color"))
 
 
 if __name__ == "__main__":
@@ -414,8 +431,8 @@ if __name__ == "__main__":
         
     row_button = tk.Button(root, text="Check row 1 for size", command=check_row_button_function) #For testing purposes. Can be changed to test other win_check functions.
     row_button.pack(pady=10)
-    # column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
-    # column_button.pack(pady=10)
+    column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
+    column_button.pack(pady=10)
     
     canvas.bind("<Motion>", highlightBoth)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
     canvas.bind("<Button-1>", selectToken)
