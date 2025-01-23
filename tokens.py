@@ -385,7 +385,38 @@ def check_column(board, column, characteristic):
     
 def check_column_button_function():
     print(check_column(board, 0, "color"))
+    
+def check_diagonal(board, diagonal, characteristic):
+    """
+    it will check a diagonal win from top left to bottom right
+    or top right to bottom left
+    """
 
+    if characteristic == "size":
+        letter_index = 0
+    elif characteristic == "shape":
+        letter_index = 1 
+    elif characteristic == "color":
+        letter_index = 2
+    elif characteristic == "hole":
+        letter_index = 3
+    else:
+        raise ValueError(f"Must insert valid characteristic for check_row. Options are: size, shape, color, hole. You entered: {characteristic} ")
+    
+    if diagonal == "first_diagonal": #top left to bottom right
+        position = [(i,i) for i in range(4)]
+    if diagonal == "second_diagonal":
+        position = [(i,3-i) for i in range(4)] #top right to bottom left
+
+    for row, column in position: #Make sure entire column contains tokens
+        if (board[row][column]) == None:
+            return False
+        
+    letter_to_check = board[position[0][0]][position[1][1]][letter_index]
+    for row, column in position:  #make sure that the 4 in the row have all the same characteristics
+        if board[row][column][letter_index] != letter_to_check:
+            return False
+    return True
 def check_board_state():
     for row in board:
         print(row)
