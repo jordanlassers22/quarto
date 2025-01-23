@@ -432,6 +432,7 @@ if __name__ == "__main__":
     for token in unplacedTokenList:
         drawToken(canvas, token)
         
+    #The following buttons are for debugging and will be removed before final submision of project.
     row_button = tk.Button(root, text="Check row 1 for size", command=check_row_button_function) #For testing purposes. Can be changed to test other win_check functions.
     row_button.pack(pady=5)
     column_button = tk.Button(root, text="Check column 1 for color", command=check_column_button_function)
