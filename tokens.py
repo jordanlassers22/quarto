@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import tkinter as tk
 import math
-from tkinter import messagebox
+from tkinter import ttk
 class Token:
     """
    Represents a game token that can be placed on a board.
@@ -459,61 +459,129 @@ def check_board_button_function():
 def check_board_state():
     for row in board:
         print(row)
+        
+def show_name_screen():
+    """ Displays a screen for players to enter their names on the root window. """
+    #Clear the root window
+    for widget in root.winfo_children():
+        widget.destroy()
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Quarto Game Tokens")
+    #Add labels and input widgets for player names
+    tk.Label(root, text="Player 1 Name:", font=("Arial", 18)).pack(pady=5)
+    player1_entry = tk.Entry(root, font=("Arial", 18))
+    player1_entry.pack(pady=5)
+
+    tk.Label(root, text="Player 2 Name:", font=("Arial", 18)).pack(pady=5)
+    player2_entry = tk.Entry(root, font=("Arial", 18))
+    player2_entry.pack(pady=5)
+
+    #Function runs when start_game button is clicked. Keep indented one more than parent function.
+    def start_game():
+        """ Start the game with entered player names. """
+        player1 = player1_entry.get().strip() or "Player 1"
+        player2 = player2_entry.get().strip() or "Player 2"
+
+        # Clear the root window and initialize the game
+        for widget in root.winfo_children():
+            widget.destroy()
+        initialize_game(player1, player2)
+
+    tk.Button(root, text="Start Game", command=start_game, font=("Arial", 18)).pack(pady=10)
+
+    
+def update_status_bar_message(message):
+    """Simplifies updating the status bar."""
+    status_bar.config(text=message)
+    
+def initialize_game(player1, player2):
+    """ Initializes the game board with the given player names."""
+    global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar
+
+    print(f"Starting game with {player1} and {player2}.")
+    tk.Label(root, text=f"Quarto: {player1} vs {player2}", font=("Arial", 20)).pack(pady=10)
+
     canvas = tk.Canvas(root, width=1000, height=600, bg="white")
     canvas.pack()
-    placed_board_pieces = [] #list of objects that have been placed on board
-    
-    board = [] # Represents our board. Starts out as None for all items.
+
+    placed_board_pieces = []  # List of objects that have been placed on the board
+
+    board = []  # Represents the board. Starts out as None for all items.
     for _ in range(4):
         row = []
         for _ in range(4):
             row.append(None)
         board.append(row)
 
-    
-
     # Get squares
     dict_coords = drawBoard(canvas)
-    
-    unplacedTokenList = [ #Be sure token is removed from list, and placed into placedTokenList when it is played.
-    Token(550, 100, "blue", False, "small", "circle"),
-    Token(650, 100, "blue", True, "small", "circle"),
-    Token(750, 100, "blue", False, "large", "circle"),
-    Token(850, 100, "blue", True, "large", "circle"),
-    Token(550, 200, "blue", False, "small", "square"),
-    Token(650, 200, "blue", True, "small", "square"),
-    Token(750, 200, "blue", False, "large", "square"),
-    Token(850, 200, "blue", True, "large", "square"),
-    Token(550, 300, "red", False, "small", "circle"),
-    Token(650, 300, "red", True, "small", "circle"),
-    Token(750, 300, "red", False, "large", "circle"),
-    Token(850, 300, "red", True, "large", "circle"),
-    Token(550, 400, "red", False, "small", "square"),
-    Token(650, 400, "red", True, "small", "square"),
-    Token(750, 400, "red", False, "large", "square"),
-    Token(850, 400, "red", True, "large", "square")
+
+    unplacedTokenList = [
+        Token(550, 100, "blue", False, "small", "circle"),
+        Token(650, 100, "blue", True, "small", "circle"),
+        Token(750, 100, "blue", False, "large", "circle"),
+        Token(850, 100, "blue", True, "large", "circle"),
+        Token(550, 200, "blue", False, "small", "square"),
+        Token(650, 200, "blue", True, "small", "square"),
+        Token(750, 200, "blue", False, "large", "square"),
+        Token(850, 200, "blue", True, "large", "square"),
+        Token(550, 300, "red", False, "small", "circle"),
+        Token(650, 300, "red", True, "small", "circle"),
+        Token(750, 300, "red", False, "large", "circle"),
+        Token(850, 300, "red", True, "large", "circle"),
+        Token(550, 400, "red", False, "small", "square"),
+        Token(650, 400, "red", True, "small", "square"),
+        Token(750, 400, "red", False, "large", "square"),
+        Token(850, 400, "red", True, "large", "square"),
     ]
-    
-    #Initially draws tokens on screen.
+
+    #Initially draw tokens on screen
     for token in unplacedTokenList:
         drawToken(canvas, token)
-        
-    #The following buttons are for debugging and will be removed before final submision of project.
-    row_button = tk.Button(root, text="Check for win", command=check_board_button_function) #For testing purposes. Can be changed to test other win_check functions.
-    row_button.pack(pady=5)
-    check_board_button = tk.Button(root, text="Check board state", command=check_board_state)
-    check_board_button.pack(pady=5)
+
+    #Create a Frame for aligning the button and win conditions in the same row
+    controls_frame = tk.Frame(root)
+    controls_frame.pack(pady=10)
     
-    canvas.bind("<Motion>", highlightBoth)  #Checks for highlight on mouse movement. Binds highlight token function to mouse movement.
+    #Label for the Call Quarto button
+    tk.Label(controls_frame, text="Actions:", font=("Arial", 14)).grid(row=0, column=0, padx=10)
+    
+    #Call Quarto button
+    victory_button = tk.Button(controls_frame, text="Call Quarto!", font=("Arial", 14), command=check_board_button_function)
+    victory_button.grid(row=1, column=0, padx=10)
+    
+    #Label for the Win Condition dropdown
+    tk.Label(controls_frame, text="Select Win Condition:", font=("Arial", 14)).grid(row=0, column=1, padx=10)
+    
+    #Win Condition Combo Box
+    win_conditions = ["Same Size", "Same Color", "Same Shape", "Same Fill"]
+    win_combobox = ttk.Combobox(controls_frame, values=win_conditions, state="readonly", font=("Arial", 14))
+    win_combobox.set("Select a win condition")  # Default text
+    win_combobox.grid(row=1, column=1, padx=10)
+    
+    #Label for the Row Selection dropdown
+    tk.Label(controls_frame, text="Choose a Row or Column:", font=("Arial", 14)).grid(row=0, column=2, padx=10)
+    
+    #Row Selection Combo Box
+    row_conditions = ["1st row", "2nd row", "3rd row", "4th row",
+                      "1st column", "2nd column", "3rd column", "4th column",
+                      "Left to Right Diagonal", "Right to Left Diagonal"]
+    
+    row_combobox = ttk.Combobox(controls_frame, values=row_conditions, state="readonly", font=("Arial", 14))
+    row_combobox.set("Select a row/column")  # Default text
+    row_combobox.grid(row=1, column=2, padx=10)
+
+    #Status bar
+    status_bar = tk.Label(root, text=f"It is {player1}'s Turn", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
+    status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+    canvas.bind("<Motion>", highlightBoth)  # Highlight on mouse movement
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
 
 
-    selected_token = None
-
-    
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("Quarto Game")
+    show_name_screen()  # Display the name entry screen
     root.mainloop()
+    
