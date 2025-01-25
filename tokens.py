@@ -491,7 +491,7 @@ def show_name_screen():
 
     tk.Button(root, text="Start Game", command=start_game, font=("Arial", 18)).pack(pady=10)
     esc_tooltip = tk.Label(root, text="Press ESC to Close Game", font=("Arial", 25), fg="gray")
-    esc_tooltip.place(relx=0.5, rely=1.0, anchor="s", y=-100)  #Place100 pixels from the bottom
+    esc_tooltip.place(relx=0.5, rely=1.0, anchor="s", y=-100)  #Place 100 pixels from the bottom
     
 def update_status_bar_message(message):
     """Simplifies updating the status bar."""
