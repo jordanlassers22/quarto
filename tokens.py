@@ -460,12 +460,14 @@ def check_board_state():
     for row in board:
         print(row)
         
+        
 def show_name_screen():
     """ Displays a screen for players to enter their names on the root window. """
     #Clear the root window
     for widget in root.winfo_children():
         widget.destroy()
 
+    tk.Label(root,text="QUARTO",font=("Comic Sans MS", 60, "bold"),fg="#FF5733", bg="white").pack(pady=100)
     #Add labels and input widgets for player names
     tk.Label(root, text="Player 1 Name:", font=("Arial", 18)).pack(pady=5)
     player1_entry = tk.Entry(root, font=("Arial", 18))
@@ -474,6 +476,7 @@ def show_name_screen():
     tk.Label(root, text="Player 2 Name:", font=("Arial", 18)).pack(pady=5)
     player2_entry = tk.Entry(root, font=("Arial", 18))
     player2_entry.pack(pady=5)
+    
 
     #Function runs when start_game button is clicked. Keep indented one more than parent function.
     def start_game():
@@ -487,7 +490,8 @@ def show_name_screen():
         initialize_game(player1, player2)
 
     tk.Button(root, text="Start Game", command=start_game, font=("Arial", 18)).pack(pady=10)
-
+    esc_tooltip = tk.Label(root, text="Press ESC to Close Game", font=("Arial", 25), fg="gray")
+    esc_tooltip.place(relx=0.5, rely=1.0, anchor="s", y=-100)  #Place100 pixels from the bottom
     
 def update_status_bar_message(message):
     """Simplifies updating the status bar."""
@@ -571,17 +575,22 @@ def initialize_game(player1, player2):
     row_combobox.grid(row=1, column=2, padx=10)
 
     #Status bar
-    status_bar = tk.Label(root, text=f"It is {player1}'s Turn", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
+    status_bar = tk.Label(root, text=f"It is {player1}'s Turn. {player2} select a piece for {player1} to play", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
     status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
     canvas.bind("<Motion>", highlightBoth)  # Highlight on mouse movement
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
+    
+def exit_fullscreen(event=None):
+    root.destroy()  # Close the application
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game")
+    root.attributes("-fullscreen", True)  # Enable full-screen mode
     show_name_screen()  # Display the name entry screen
+    root.bind("<Escape>", exit_fullscreen)
     root.mainloop()
     
