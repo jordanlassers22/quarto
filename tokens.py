@@ -2,6 +2,8 @@
 import tkinter as tk
 import math
 from tkinter import ttk
+from tkinter import messagebox
+
 class Token:
     """
    Represents a game token that can be placed on a board.
@@ -432,12 +434,23 @@ def check_board_button_function():
     if row_col_info[1] == "row":
         if check_row(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
+            congratulations(current_player)
     elif row_col_info[1] == "column":
         if check_column(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
+            congratulations(current_player)
     elif row_col_info[1] == "diagonal":
         if check_diagonal(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
+            congratulations(current_player)
+            
+def congratulations(player):
+    """message box will appear and will congratulate user and ask to play again"""
+    response = messagebox.askyesno("Quarto!", f"Congratulations! You won!\n\nPlay again?")
+    if response:  # yes
+        show_name_screen()  #reset the game
+    else:  #no
+        root.destroy() #exit game
     
 def check_column(board, column, characteristic):
     #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
