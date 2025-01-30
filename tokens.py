@@ -544,9 +544,6 @@ def check_win_in_any_position(board):
     # Return False if no win is found for any characteristic
     return False
 
-def check_board_button_function():
-    print(check_win_in_any_position(board))
-
 def check_board_state():
     for row in board:
         print(row)
