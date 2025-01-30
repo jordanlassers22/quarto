@@ -78,6 +78,15 @@ class Token:
 
         
         self._updateCenterCords()
+
+    # Players
+    current_player = None 
+    p1 = None
+    p2 = None
+
+    # Selecting piece for other player
+    selected_piece = None
+    piece_selected_for_placement = False # track if piece has been selected by other player
     
     def getX(self):
         return self._x
@@ -286,22 +295,40 @@ def highlightToken(event):
         
 def selectToken(event):
     """selects a token when clicked"""
-    global selected_token #a global variable that stores the selected token
+    global selected_token, selected_piece, current_player, p1, p2, piece_selected_for_placement #a global variable that stores the selected token
     mouseX = event.x
     mouseY =  event.y
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
-    if token: #if the token is detected then it will be selecteed
-        selected_token = token
-        canvas.delete("select") #removes the prev. selection
-        if token.shape == "circle":
-            canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
-        else:
-            canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
+
+    # If piece has already been chosen, skip
+    if piece_selected_for_placement:
+        return
+
+    # Only allow token selection if it's the current player's turn to select
+    if token and token not in placed_board_pieces:
+        selected_piece = token  # Set the selected piece
+        piece_selected_for_placement = True
+        canvas.delete("select") # Remove old select
+
+        if token: #if the token is detected then it will be selecteed
+            selected_token = token
+            canvas.delete("select") #removes the prev. selection
+            if token.shape == "circle":
+                canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
+            else:
+                canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
+
+        # Update the status bar
+        update_status_bar_message(f"{current_player}, place the selected piece on the board.")
 
 def placeToken(event):
     """places the token in an unsused slot on the grid"""
-    global selected_token
-    if not selected_token: #if a token is not selected then leave
+    global selected_token, current_player, p1, p2, selected_piece, piece_selected_for_placement
+    if not selected_piece: #if a token is not selected then leave
+        return
+
+    # if no piece to place just skip
+    if not selected_piece or not piece_selected_for_placement:
         return
     
     mouseX = event.x
@@ -309,15 +336,21 @@ def placeToken(event):
     grid = isOnGrid(mouseX, mouseY, dict_coords)
     if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
         print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
-        print(f"{selected_token.get_id()} placed at {grid}") # debugging
+        print(f"{selected_piece.get_id()} placed at {grid}") # debugging
         row, col = int(grid[1]) - 1, ord(grid[0]) - ord('A')
-        board[row][col] = selected_token.get_id()  # Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
-        deleteToken(canvas, selected_token)
-        drawToken(canvas, selected_token, dict_coords, grid)
+        board[row][col] = selected_piece.get_id()  # Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
+        deleteToken(canvas, selected_piece)
+        drawToken(canvas, selected_piece, dict_coords, grid)
         placed_board_pieces.append(grid)
-        unplacedTokenList.remove(selected_token)
-        selected_token = None #resets selected token
+        unplacedTokenList.remove(selected_piece)
+        selected_piece = None #resets selected token
+        piece_selected_for_placement = False
         canvas.delete("select")#removes the tokens highlight
+
+        # Switch turns
+        current_player = p2 if current_player == p1 else p1
+        # Update the status bar
+        update_status_bar_message(f"{p2 if current_player == p1 else p1}, select a token for {current_player} to place.")
 
 def deleteToken(canvas, token):
     """Deletes a token from canvas by drawing over it """
@@ -358,8 +391,53 @@ def check_row(board, row, characteristic):
     
     return True #Returns True if every specific letter from token id matches. Can target different id letters by changing the index.
         
-def check_row_button_function():
-    print(check_row(board, 0, "size"))
+def check_board_button_function():
+    # Get dropdown win
+    win_condition = win_combobox.get()
+    # Get the dropdown selection
+    row_col_selection = row_combobox.get()
+
+    characteristic_map = {
+        "Same Size": "size",
+        "Same Color": "color",
+        "Same Shape": "shape",
+        "Same Fill": "hole"
+    }
+    characteristic = characteristic_map.get(win_condition, None)
+
+    if not characteristic:
+        print("Please select a valid win condition.")
+        return
+
+    # Map correspondingly
+    row_col_map = {
+        "1st row": (0, "row"),
+        "2nd row": (1, "row"),
+        "3rd row": (2, "row"),
+        "4th row": (3, "row"),
+        "1st column": (0, "column"),
+        "2nd column": (1, "column"),
+        "3rd column": (2, "column"),
+        "4th column": (3, "column"),
+        "Left to Right Diagonal": ("first_diagonal", "diagonal"),
+        "Right to Left Diagonal": ("second_diagonal", "diagonal")
+    }
+    row_col_info = row_col_map.get(row_col_selection, None)
+
+    if not row_col_info:
+        print("Please select a valid row/column/diagonal.")
+        return
+
+    # Check for a win
+    if row_col_info[1] == "row":
+        if check_row(board, row_col_info[0], characteristic):
+            print(f"Win detected in {row_col_selection} with {win_condition}!")
+    elif row_col_info[1] == "column":
+        if check_column(board, row_col_info[0], characteristic):
+            print(f"Win detected in {row_col_selection} with {win_condition}!")
+    elif row_col_info[1] == "diagonal":
+        if check_diagonal(board, row_col_info[0], characteristic):
+            print(f"Win detected in {row_col_selection} with {win_condition}!")
     
 def check_column(board, column, characteristic):
     #Id string letter options. size(L,S), shape(C,S), color(B,R), hole(0,X) ie. LCB0 -> Large, Circle, Blue, Hole
@@ -499,7 +577,14 @@ def update_status_bar_message(message):
     
 def initialize_game(player1, player2):
     """ Initializes the game board with the given player names."""
-    global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar
+    global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar, current_player, p1, p2, piece_selected_for_placement, win_combobox, row_combobox
+
+    # initialize a bunch of stuff
+    p1 = player1
+    p2 = player2
+    current_player = player1
+    selected_piece = None # on post thoughts I probably didn't need to rewrite stuff with this but it worked out in my head
+    piece_selected_for_placement = False
 
     print(f"Starting game with {player1} and {player2}.")
     tk.Label(root, text=f"Quarto: {player1} vs {player2}", font=("Arial", 20)).pack(pady=10)
@@ -575,7 +660,7 @@ def initialize_game(player1, player2):
     row_combobox.grid(row=1, column=2, padx=10)
 
     #Status bar
-    status_bar = tk.Label(root, text=f"It is {player1}'s Turn. {player2} select a piece for {player1} to play", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
+    status_bar = tk.Label(root, text=f"{p2}, select a token for {p1} to place.", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
     status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
     canvas.bind("<Motion>", highlightBoth)  # Highlight on mouse movement
