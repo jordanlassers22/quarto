@@ -3,6 +3,7 @@ import tkinter as tk
 import math
 from tkinter import ttk
 from tkinter import messagebox
+import random
 
 class Token:
     """
@@ -89,6 +90,8 @@ class Token:
     # Selecting piece for other player
     selected_piece = None
     piece_selected_for_placement = False # track if piece has been selected by other player
+    
+    is_ai_opponent = False # Flag to signal whether AI is turned off or on
     
     def getX(self):
         return self._x
@@ -353,6 +356,10 @@ def placeToken(event):
         current_player = p2 if current_player == p1 else p1
         # Update the status bar
         update_status_bar_message(f"{p2 if current_player == p1 else p1}, select a token for {current_player} to place.")
+        
+        #If there is an AI opponent and it is player 1s turn, have ai select token for player 1
+        if is_ai_opponent and current_player != "AI":
+            root.after(1000, handle_ai_turn)  # Delay for 1 second to make it feel natural
 
 def deleteToken(canvas, token):
     """Deletes a token from canvas by drawing over it """
@@ -446,7 +453,7 @@ def check_board_button_function():
             
 def congratulations(player):
     """message box will appear and will congratulate user and ask to play again"""
-    response = messagebox.askyesno("Quarto!", f"Congratulations! You won!\n\nPlay again?")
+    response = messagebox.askyesno("Quarto!", "Congratulations! You won!\n\nPlay again?")
     if response:  # yes
         show_name_screen()  #reset the game
     else:  #no
@@ -514,19 +521,23 @@ def check_win(board, characteristic):
     # Check all rows for a win
     for row in range(4):
         if check_row(board, row, characteristic):
+            print(f"Win found row {row}, {characteristic}")
             return True
     
     # Check all columns for a win
     for col in range(4):
         if check_column(board, col, characteristic):
+            print(f"Win found column {col}, {characteristic}")
             return True
     
     # Check the first diagonal
     if check_diagonal(board, "first_diagonal", characteristic):
+        print(f"Win found first diagonal,{characteristic}")
         return True
     
     # Check the second diagonal
     if check_diagonal(board, "second_diagonal", characteristic):
+        print(f"Win found second diagonal,{characteristic}")
         return True
     
     # If no win found, return False
@@ -548,6 +559,49 @@ def check_board_state():
     for row in board:
         print(row)
         
+def ai_select_token():
+    """AI selects a token for the human player to place. Returns a token that is to be placed"""
+    global unplacedTokenList, board
+    
+    #Try's to avoid selecting a piece that lets the human win immediately
+    safe_tokens = []
+    for token in unplacedTokenList:
+        #Try placing a token in each slot and see what happens
+        winning_piece = False
+        for row in range(4):
+            for col in range(4):
+                if board[row][col] is None:
+                    #Temporarily place the token
+                    board[row][col] = token.get_id()
+                    if check_win_in_any_position(board):
+                        winning_piece = True
+                    board[row][col] = None  #Undo the placed token
+                    if winning_piece:
+                        break
+            if winning_piece:
+                break
+        if not winning_piece:
+            safe_tokens.append(token)
+    
+    #If there are safe tokens, pick one. Otherwise, pick a random token
+    if safe_tokens:
+        print("picking a safe token...")
+        for token in safe_tokens:
+            print(f"{token.get_id()}")
+        return random.choice(safe_tokens)
+    return random.choice(unplacedTokenList)
+        
+def ai_place_token(token):
+    '''Places the selected token provided by player 1 on the board in the best possible position
+    Parameters: 
+        token: token to be placed on board
+    '''
+    pass
+
+def handle_ai_turn():
+    '''Handles the ais turn. Selects a token for the human and places a token provided by the human. '''
+    selectedToken = ai_select_token()
+    print(f"AI chose: {selectedToken.get_id()}") #Place holder to see if AI selects decent token. Still needs to be played manually
         
 def show_name_screen():
     """ Displays a screen for players to enter their names on the root window. """
@@ -568,9 +622,15 @@ def show_name_screen():
 
     #Function runs when start_game button is clicked. Keep indented one more than parent function.
     def start_game():
-        """ Start the game with entered player names. """
+        """ Start the game with entered player names. Toggles AI if player 2s name is ai """
+        global is_ai_opponent
         player1 = player1_entry.get().strip() or "Player 1"
         player2 = player2_entry.get().strip() or "Player 2"
+        
+        if player2.upper() == "AI":
+            player2 = "AI"
+            is_ai_opponent = True
+            
 
         # Clear the root window and initialize the game
         for widget in root.winfo_children():
@@ -593,7 +653,6 @@ def initialize_game(player1, player2):
     p1 = player1
     p2 = player2
     current_player = player1
-    selected_piece = None # on post thoughts I probably didn't need to rewrite stuff with this but it worked out in my head
     piece_selected_for_placement = False
 
     print(f"Starting game with {player1} and {player2}.")
@@ -677,6 +736,7 @@ def initialize_game(player1, player2):
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
     
+    handle_ai_turn() #See ai token selection when game first starts. Should be a better way to do this
 def exit_fullscreen(event=None):
     root.destroy()  # Close the application
 
