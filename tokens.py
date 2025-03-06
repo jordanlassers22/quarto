@@ -585,10 +585,11 @@ def ai_select_token():
     
     #If there are safe tokens, pick one. Otherwise, pick a random token
     if safe_tokens:
-        print("picking a safe token...")
+        print("picking a safe token from following list...")
         for token in safe_tokens:
             print(f"{token.get_id()}")
         return random.choice(safe_tokens)
+    print("No safe tokens left. Randomly picking from available token list...")
     return random.choice(unplacedTokenList)
         
 def ai_place_token(token):
