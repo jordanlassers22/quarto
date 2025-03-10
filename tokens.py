@@ -601,8 +601,31 @@ def ai_place_token(token):
 
 def handle_ai_turn():
     '''Handles the ais turn. Selects a token for the human and places a token provided by the human. '''
-    selectedToken = ai_select_token()
-    print(f"AI chose: {selectedToken.get_id()}") #Place holder to see if AI selects decent token. Still needs to be played manually
+    global selected_piece, piece_selected_for_placement, current_player, p1, p2
+
+    # Have AI select token for human
+    selected_piece = ai_select_token()
+    piece_selected_for_placement = True
+
+    # Update status bar
+    update_status_bar_message(f"{current_player}, place the selected piece on the board.")
+
+    # Highlight the selected token on the canvas
+    canvas.delete("select")  # Remove old selection
+    if selected_piece.shape == "circle":
+        canvas.create_oval(selected_piece.getX(), selected_piece.getY(), 
+                           selected_piece.getX() + selected_piece.diameter, 
+                           selected_piece.getY() + selected_piece.diameter, 
+                           outline="green", width=5, tags="select")
+    else:
+        canvas.create_rectangle(selected_piece.getX(), selected_piece.getY(), 
+                                selected_piece.getX() + selected_piece.diameter, 
+                                selected_piece.getY() + selected_piece.diameter, 
+                                outline="green", width=5, tags="select")
+
+    # Switch turns
+    current_player = p2 if current_player == p1 else p1
+    
         
 def show_name_screen():
     """ Displays a screen for players to enter their names on the root window. """
