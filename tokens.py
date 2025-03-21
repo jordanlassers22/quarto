@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 import tkinter as tk
 import math
 from tkinter import ttk
@@ -82,16 +82,16 @@ class Token:
         
         self._updateCenterCords()
 
-    # Players
+    #Players
     current_player = None 
     p1 = None
     p2 = None
 
-    # Selecting piece for other player
+    #Selecting piece for other player
     selected_piece = None
-    piece_selected_for_placement = False # track if piece has been selected by other player
+    piece_selected_for_placement = False #track if piece has been selected by other player
     
-    is_ai_opponent = False # Flag to signal whether AI is turned off or on
+    is_ai_opponent = False #Flag to signal whether AI is turned off or on
     
     def getX(self):
         return self._x
@@ -124,10 +124,10 @@ class Token:
 
     def get_id(self):
         """ Get unique id for each token for when we keep track of score"""
-        size_code = 'S' if self.size == 'large' else 'L' # I don't know why i have to put s for large but that's what works for the code
-        color_code = self.color[0].upper()  # First letter of the color 
-        shape_code = self.shape[0].upper()  # First letter of the shape
-        hole_code = '0' if self.has_hole else 'X'  # 0 for hole, X for no hole
+        size_code = 'S' if self.size == 'large' else 'L' #I don't know why i have to put s for large but that's what works for the code
+        color_code = self.color[0].upper()  #First letter of the color 
+        shape_code = self.shape[0].upper()  #First letter of the shape
+        hole_code = '0' if self.has_hole else 'X'  #0 for hole, X for no hole
         return f"{size_code}{shape_code}{color_code}{hole_code}"   
 
 def drawToken(canvas, token, gridCoords=None, square=None):
@@ -150,18 +150,18 @@ def drawToken(canvas, token, gridCoords=None, square=None):
     None
     """
     
-    # Use grid square if placing piece on board
+    #Use grid square if placing piece on board
     if gridCoords and square:
         if square in gridCoords:
             token.updateCords(gridCoords[square][0],gridCoords[square][1])
-            # Adjust position to center the token within the square
+            #Adjust position to center the token within the square
             token.setX(token.getX() + (100 - token.diameter) // 2)
             token.setY( token.getY() + (100 - token.diameter) // 2)
         else:
             print(f"Invalid square: {square}")
             return
 
-    # Draw the token's shape
+    #Draw the token's shape
     if token.shape == "circle":
         canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, fill=token.color)
         if token.has_hole: #Decided to hollow out shape using white fill.
@@ -198,31 +198,31 @@ def drawBoard(canvas):
     cell = 100
     grid = 4
 
-    # Create dictionary for each square
+    #Create dictionary for each square
     center_coords = {}
 
-    # Each square has a column and row
+    #Each square has a column and row
     columns = ['A', 'B', 'C', 'D']
     for row in range(grid):
         for col in range(grid):
-            # Calculate the center coords of the current square
+            #Calculate the center coords of the current square
             top_left_x = board_x + col * cell
             top_left_y = board_y + row * cell
 
-            # Create the label for the square 
+            #Create the label for the square 
             label = f"{columns[col]}{row + 1}"
 
-            # Add to dict
+            #Add to dict
             center_coords[label] = (top_left_x, top_left_y)
 
-            # Draw each square
+            #Draw each square
             canvas.create_rectangle(
                 board_x + col * cell, board_y + row * cell,
                 board_x + (col + 1) * cell, board_y + (row + 1) * cell,
                 outline="black", width=2
             )
 
-    # Return coords
+    #Return coords
     return center_coords
 
 def isOnToken(mouseX, mouseY, unplacedTokenList):
@@ -243,7 +243,7 @@ def isOnToken(mouseX, mouseY, unplacedTokenList):
 def isOnGrid(mouseX, mouseY, gridCoords):
     """Helper Function. Will be used for place token to make sure mouse is over a grid slot"""
     for label, (topLeftX, topLeftY) in gridCoords.items():
-        slot_size = 100  # Assuming each grid slot is 100x100
+        slot_size = 100  #Assuming each grid slot is 100x100
         #checks mouse position accoriding to the grid
         if (topLeftX <= mouseX <= topLeftX + slot_size and
             topLeftY <= mouseY <= topLeftY + slot_size):
@@ -266,7 +266,7 @@ def highlightGrid(event):
     
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
     if token:
-        return  # Skip grid highlighting if hovering over a token
+        return  #Skip grid highlighting if hovering over a token
 
     #Check if the mouse is over a grid square
     grid_label = isOnGrid(mouseX, mouseY, dict_coords)
@@ -305,15 +305,15 @@ def selectToken(event):
     mouseY =  event.y
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
 
-    # If piece has already been chosen, skip
+    #If piece has already been chosen, skip
     if piece_selected_for_placement:
         return
 
-    # Only allow token selection if it's the current player's turn to select
+    #Only allow token selection if it's the current player's turn to select
     if token and token not in placed_board_pieces:
-        selected_piece = token  # Set the selected piece
+        selected_piece = token  #Set the selected piece
         piece_selected_for_placement = True
-        canvas.delete("select") # Remove old select
+        canvas.delete("select") #Remove old select
 
         if token: #if the token is detected then it will be selecteed
             selected_token = token
@@ -323,7 +323,7 @@ def selectToken(event):
             else:
                 canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
 
-        # Update the status bar
+        #Update the status bar
         update_status_bar_message(f"{current_player}, place the selected piece on the board.")
 
 def placeToken(event):
@@ -332,7 +332,7 @@ def placeToken(event):
     if not selected_piece: #if a token is not selected then leave
         return
 
-    # if no piece to place just skip
+    #if no piece to place just skip
     if not selected_piece or not piece_selected_for_placement:
         return
     
@@ -341,9 +341,9 @@ def placeToken(event):
     grid = isOnGrid(mouseX, mouseY, dict_coords)
     if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
         print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
-        print(f"{selected_piece.get_id()} placed at {grid}") # debugging
+        print(f"{selected_piece.get_id()} placed at {grid}") #debugging
         row, col = int(grid[1]) - 1, ord(grid[0]) - ord('A')
-        board[row][col] = selected_piece.get_id()  # Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
+        board[row][col] = selected_piece.get_id()  #Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
         deleteToken(canvas, selected_piece)
         drawToken(canvas, selected_piece, dict_coords, grid)
         placed_board_pieces.append(grid)
@@ -352,14 +352,14 @@ def placeToken(event):
         piece_selected_for_placement = False
         canvas.delete("select")#removes the tokens highlight
 
-        # Switch turns
+        #Switch turns
         current_player = p2 if current_player == p1 else p1
-        # Update the status bar
+        #Update the status bar
         update_status_bar_message(f"{p2 if current_player == p1 else p1}, select a token for {current_player} to place.")
         
         #If there is an AI opponent and it is player 1s turn, have ai select token for player 1
         if is_ai_opponent and current_player != "AI":
-            root.after(1000, handle_ai_turn)  # Delay for 1 second to make it feel natural
+            root.after(1000, handle_ai_turn)  #Delay for 1 second to make it feel natural
 
 def deleteToken(canvas, token):
     """Deletes a token from canvas by drawing over it """
@@ -393,7 +393,7 @@ def check_row(board, row, characteristic):
     
     letter_to_check = board[row][0][letter_index]
     
-    # Check each token in the row
+    #Check each token in the row
     for token_id in board[row]:
         if token_id[letter_index] != letter_to_check:
             return False
@@ -401,9 +401,9 @@ def check_row(board, row, characteristic):
     return True #Returns True if every specific letter from token id matches. Can target different id letters by changing the index.
         
 def check_board_button_function():
-    # Get dropdown win
+    #Get dropdown win
     win_condition = win_combobox.get()
-    # Get the dropdown selection
+    #Get the dropdown selection
     row_col_selection = row_combobox.get()
 
     characteristic_map = {
@@ -418,7 +418,7 @@ def check_board_button_function():
         print("Please select a valid win condition.")
         return
 
-    # Map correspondingly
+    #Map correspondingly
     row_col_map = {
         "1st row": (0, "row"),
         "2nd row": (1, "row"),
@@ -437,7 +437,7 @@ def check_board_button_function():
         print("Please select a valid row/column/diagonal.")
         return
 
-    # Check for a win
+    #Check for a win
     if row_col_info[1] == "row":
         if check_row(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
@@ -454,7 +454,7 @@ def check_board_button_function():
 def congratulations(player):
     """message box will appear and will congratulate user and ask to play again"""
     response = messagebox.askyesno("Quarto!", "Congratulations! You won!\n\nPlay again?")
-    if response:  # yes
+    if response:  #yes
         show_name_screen()  #reset the game
     else:  #no
         root.destroy() #exit game
@@ -511,48 +511,48 @@ def check_diagonal(board, diagonal, characteristic):
             return False
         
     letter_to_check = board[position[0][0]][position[0][1]][letter_index]
-    for row, column in position:  # Iterate over the diagonal and check for consistency
+    for row, column in position:  #Iterate over the diagonal and check for consistency
         if board[row][column][letter_index] != letter_to_check:
             return False
     return True
 
 def check_win(board, characteristic):
     """ Check a win for a specific characteristic in one way """
-    # Check all rows for a win
+    #Check all rows for a win
     for row in range(4):
         if check_row(board, row, characteristic):
             print(f"Win found row {row}, {characteristic}")
             return True
     
-    # Check all columns for a win
+    #Check all columns for a win
     for col in range(4):
         if check_column(board, col, characteristic):
             print(f"Win found column {col}, {characteristic}")
             return True
     
-    # Check the first diagonal
+    #Check the first diagonal
     if check_diagonal(board, "first_diagonal", characteristic):
         print(f"Win found first diagonal,{characteristic}")
         return True
     
-    # Check the second diagonal
+    #Check the second diagonal
     if check_diagonal(board, "second_diagonal", characteristic):
         print(f"Win found second diagonal,{characteristic}")
         return True
     
-    # If no win found, return False
+    #If no win found, return False
     return False
 
 def check_win_in_any_position(board):
     """ Checks if a player has won based on any of the four characteristics: size, shape, color, or hole. """
     characteristics = ["size", "shape", "color", "hole"]
     
-    # Loop through each characteristic
+    #Loop through each characteristic
     for characteristic in characteristics:
         if check_win(board, characteristic):
             return True
 
-    # Return False if no win is found for any characteristic
+    #Return False if no win is found for any characteristic
     return False
 
 def check_board_state():
@@ -593,25 +593,47 @@ def ai_select_token():
     return random.choice(unplacedTokenList)
         
 def ai_place_token(token):
-    '''Places the selected token provided by player 1 on the board in the best possible position
+    '''Places the given token on the board in a random available position
     Parameters: 
         token: token to be placed on board
     '''
-    pass
+    global board, placed_board_pieces, unplacedTokenList, canvas
+    
+    #Find all available positions
+    available_positions = []
+    for row in range(4):
+        for col in range(4):
+            if board[row][col] is None:
+                grid_label = chr(ord('A') + col) + str(row + 1)
+                if grid_label not in placed_board_pieces:
+                    available_positions.append((row, col, grid_label))
+    
+    #If there are available positions, place the token randomly
+    if available_positions:
+        row, col, grid_label = random.choice(available_positions)
+        
+        #Place the token
+        board[row][col] = token.get_id()
+        deleteToken(canvas, token)
+        drawToken(canvas, token, dict_coords, grid_label)
+        placed_board_pieces.append(grid_label)
+        unplacedTokenList.remove(token)
+    else:
+        print("No available positions to place the token!")
 
 def handle_ai_turn():
     '''Handles the ais turn. Selects a token for the human and places a token provided by the human. '''
     global selected_piece, piece_selected_for_placement, current_player, p1, p2
 
-    # Have AI select token for human
+    #Have AI select token for human
     selected_piece = ai_select_token()
     piece_selected_for_placement = True
 
-    # Update status bar
+    #Update status bar
     update_status_bar_message(f"{current_player}, place the selected piece on the board.")
 
-    # Highlight the selected token on the canvas
-    canvas.delete("select")  # Remove old selection
+    #Highlight the selected token on the canvas
+    canvas.delete("select")  #Remove old selection
     if selected_piece.shape == "circle":
         canvas.create_oval(selected_piece.getX(), selected_piece.getY(), 
                            selected_piece.getX() + selected_piece.diameter, 
@@ -623,7 +645,7 @@ def handle_ai_turn():
                                 selected_piece.getY() + selected_piece.diameter, 
                                 outline="green", width=5, tags="select")
 
-    # Switch turns
+    #Switch turns
     current_player = p2 if current_player == p1 else p1
     
         
@@ -656,7 +678,7 @@ def show_name_screen():
             is_ai_opponent = True
             
 
-        # Clear the root window and initialize the game
+        #Clear the root window and initialize the game
         for widget in root.winfo_children():
             widget.destroy()
         initialize_game(player1, player2)
@@ -673,7 +695,7 @@ def initialize_game(player1, player2):
     """ Initializes the game board with the given player names."""
     global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar, current_player, p1, p2, piece_selected_for_placement, win_combobox, row_combobox
 
-    # initialize a bunch of stuff
+    #initialize a bunch of stuff
     p1 = player1
     p2 = player2
     current_player = player1
@@ -685,16 +707,16 @@ def initialize_game(player1, player2):
     canvas = tk.Canvas(root, width=1000, height=600, bg="white")
     canvas.pack()
 
-    placed_board_pieces = []  # List of objects that have been placed on the board
+    placed_board_pieces = []  #List of objects that have been placed on the board
 
-    board = []  # Represents the board. Starts out as None for all items.
+    board = []  #Represents the board. Starts out as None for all items.
     for _ in range(4):
         row = []
         for _ in range(4):
             row.append(None)
         board.append(row)
 
-    # Get squares
+    #Get squares
     dict_coords = drawBoard(canvas)
 
     unplacedTokenList = [
@@ -737,7 +759,7 @@ def initialize_game(player1, player2):
     #Win Condition Combo Box
     win_conditions = ["Same Size", "Same Color", "Same Shape", "Same Fill"]
     win_combobox = ttk.Combobox(controls_frame, values=win_conditions, state="readonly", font=("Arial", 14))
-    win_combobox.set("Select a win condition")  # Default text
+    win_combobox.set("Select a win condition")  #Default text
     win_combobox.grid(row=1, column=1, padx=10)
     
     #Label for the Row Selection dropdown
@@ -749,27 +771,27 @@ def initialize_game(player1, player2):
                       "Left to Right Diagonal", "Right to Left Diagonal"]
     
     row_combobox = ttk.Combobox(controls_frame, values=row_conditions, state="readonly", font=("Arial", 14))
-    row_combobox.set("Select a row/column")  # Default text
+    row_combobox.set("Select a row/column")  #Default text
     row_combobox.grid(row=1, column=2, padx=10)
 
     #Status bar
     status_bar = tk.Label(root, text=f"{p2}, select a token for {p1} to place.", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
     status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-    canvas.bind("<Motion>", highlightBoth)  # Highlight on mouse movement
+    canvas.bind("<Motion>", highlightBoth)  #Highlight on mouse movement
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
     
     handle_ai_turn() #See ai token selection when game first starts. Should be a better way to do this
 def exit_fullscreen(event=None):
-    root.destroy()  # Close the application
+    root.destroy()  #Close the application
 
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game")
-    root.attributes("-fullscreen", True)  # Enable full-screen mode
-    show_name_screen()  # Display the name entry screen
+    root.attributes("-fullscreen", True)  #Enable full-screen mode
+    show_name_screen()  #Display the name entry screen
     root.bind("<Escape>", exit_fullscreen)
     root.mainloop()
     
