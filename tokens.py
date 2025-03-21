@@ -593,31 +593,46 @@ def ai_select_token():
     return random.choice(unplacedTokenList)
         
 def ai_place_token(token):
-    '''Places the given token on the board in a random available position
+    '''Places the given token on the board in a random available position using placeToken
     Parameters: 
         token: token to be placed on board
     '''
-    global board, placed_board_pieces, unplacedTokenList, canvas
+    global board, placed_board_pieces, selected_piece, piece_selected_for_placement
     
-    #Find all available positions
+    # Find all available positions
     available_positions = []
     for row in range(4):
         for col in range(4):
             if board[row][col] is None:
                 grid_label = chr(ord('A') + col) + str(row + 1)
                 if grid_label not in placed_board_pieces:
-                    available_positions.append((row, col, grid_label))
+                    available_positions.append(grid_label)
     
-    #If there are available positions, place the token randomly
+    # If there are available positions, place the token randomly
     if available_positions:
-        row, col, grid_label = random.choice(available_positions)
+        # Set up globals as placeToken expects
+        selected_piece = token
+        piece_selected_for_placement = True
         
-        #Place the token
-        board[row][col] = token.get_id()
-        deleteToken(canvas, token)
-        drawToken(canvas, token, dict_coords, grid_label)
-        placed_board_pieces.append(grid_label)
-        unplacedTokenList.remove(token)
+        # Choose a random position
+        random_pos = random.choice(available_positions)
+        
+        # Get the coordinates from dict_coords for the chosen position
+        top_left_x, top_left_y = dict_coords[random_pos]
+        # Simulate mouse click in the center of the grid square (100x100)
+        mouse_x = top_left_x + 50
+        mouse_y = top_left_y + 50
+        
+        # Create a fake event object
+        class FakeEvent:
+            def __init__(self, x, y):
+                self.x = x
+                self.y = y
+        
+        fake_event = FakeEvent(mouse_x, mouse_y)
+        
+        # Call the existing placeToken function
+        placeToken(fake_event)
     else:
         print("No available positions to place the token!")
 
@@ -645,6 +660,9 @@ def handle_ai_turn():
                                 selected_piece.getY() + selected_piece.diameter, 
                                 outline="green", width=5, tags="select")
 
+#################################################################3 For testing can be removed
+    ai_place_token(selected_piece)
+####################################################################
     #Switch turns
     current_player = p2 if current_player == p1 else p1
     
