@@ -5,6 +5,8 @@ from tkinter import ttk
 from tkinter import messagebox
 import random
 
+is_ai_opponent = False #Flag to signal whether AI is turned off or on
+
 class Token:
     """
    Represents a game token that can be placed on a board.
@@ -90,8 +92,6 @@ class Token:
     #Selecting piece for other player
     selected_piece = None
     piece_selected_for_placement = False #track if piece has been selected by other player
-
-    is_ai_opponent = False #Flag to signal whether AI is turned off or on
 
     def getX(self):
         return self._x
@@ -300,66 +300,124 @@ def highlightToken(event):
 
 def selectToken(event):
     """selects a token when clicked"""
-    global selected_token, selected_piece, current_player, p1, p2, piece_selected_for_placement #a global variable that stores the selected token
+    global selected_token, selected_piece, current_player, p1, p2, piece_selected_for_placement, is_ai_opponent
+    
     mouseX = event.x
-    mouseY =  event.y
+    mouseY = event.y
     token = isOnToken(mouseX, mouseY, unplacedTokenList)
 
-    #If piece has already been chosen, skip
-    if piece_selected_for_placement:
-        return
-
-    #Only allow token selection if it's the current player's turn to select
-    if token and token not in placed_board_pieces:
-        selected_piece = token  #Set the selected piece
-        piece_selected_for_placement = True
-        canvas.delete("select") #Remove old select
-
-        if token: #if the token is detected then it will be selecteed
-            selected_token = token
-            canvas.delete("select") #removes the prev. selection
-            if token.shape == "circle":
-                canvas.create_oval(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
-            else:
-                canvas.create_rectangle(token.getX(), token.getY(), token.getX() + token.diameter, token.getY() + token.diameter, outline="green", width=5, tags="select")
-
-        #Update the status bar
-        update_status_bar_message(f"{current_player}, place the selected piece on the board.")
+    # Only allow token selection if:
+    # 1. There's a token under the mouse
+    # 2. The token hasn't been placed yet
+    # 3. No piece is currently selected for placement
+    if token and token not in placed_board_pieces and not piece_selected_for_placement:
+        # If playing against AI and it's human's turn to select for AI
+        if is_ai_opponent and current_player == "AI":
+            selected_piece = token
+            piece_selected_for_placement = True
+            canvas.delete("select")
+            
+            if token:
+                selected_token = token
+                if token.shape == "circle":
+                    canvas.create_oval(token.getX(), token.getY(), 
+                                     token.getX() + token.diameter, 
+                                     token.getY() + token.diameter, 
+                                     outline="green", width=5, tags="select")
+                else:
+                    canvas.create_rectangle(token.getX(), token.getY(), 
+                                          token.getX() + token.diameter, 
+                                          token.getY() + token.diameter, 
+                                          outline="green", width=5, tags="select")
+            
+            # Update status and let AI place the piece after a delay
+            update_status_bar_message(f"{p1}, you selected a piece for AI to place.")
+            root.after(1000, lambda: ai_place_token(selected_piece))
+        
+        # Normal human vs human gameplay
+        elif not is_ai_opponent:
+            # In human vs human, the current player is the one who will PLACE the piece
+            # So the other player should be selecting the piece
+            selecting_player = p2 if current_player == p1 else p1
+            
+            selected_piece = token
+            piece_selected_for_placement = True
+            canvas.delete("select")
+            
+            if token:
+                selected_token = token
+                if token.shape == "circle":
+                    canvas.create_oval(token.getX(), token.getY(), 
+                                     token.getX() + token.diameter, 
+                                     token.getY() + token.diameter, 
+                                     outline="green", width=5, tags="select")
+                else:
+                    canvas.create_rectangle(token.getX(), token.getY(), 
+                                          token.getX() + token.diameter, 
+                                          token.getY() + token.diameter, 
+                                          outline="green", width=5, tags="select")
+            
+            update_status_bar_message(f"{current_player}, place the selected piece on the board.")
 
 def placeToken(event):
-    """places the token in an unsused slot on the grid"""
+    """places the token in an unused slot on the grid"""
     global selected_token, current_player, p1, p2, selected_piece, piece_selected_for_placement, is_ai_opponent
-    if not selected_piece: #if a token is not selected then leave
-        return
-
-    #if no piece to place just skip
+    
     if not selected_piece or not piece_selected_for_placement:
         return
 
     mouseX = event.x
-    mouseY =  event.y
+    mouseY = event.y
     grid = isOnGrid(mouseX, mouseY, dict_coords)
-    if grid and grid not in placed_board_pieces: #if a grid is found and it is not occupied then place the valid token
-        print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}") #debugging
-        print(f"{selected_piece.get_id()} placed at {grid}") #debugging
+    
+    if grid and grid not in placed_board_pieces:
+        print(f"Clicked at: ({mouseX}, {mouseY}), Grid: {grid}")
+        print(f"{selected_piece.get_id()} placed at {grid}")
         row, col = int(grid[1]) - 1, ord(grid[0]) - ord('A')
-        board[row][col] = selected_piece.get_id()  #Update the board with tokens id. ID looks is a string with each of the following representing size(L,S), shape(C,S), color(B,R), hole(0,X)
+        board[row][col] = selected_piece.get_id()
         deleteToken(canvas, selected_piece)
         drawToken(canvas, selected_piece, dict_coords, grid)
         placed_board_pieces.append(grid)
         unplacedTokenList.remove(selected_piece)
-        selected_piece = None #resets selected token
+        selected_piece = None
         piece_selected_for_placement = False
-        canvas.delete("select")#removes the tokens highlight
+        canvas.delete("select")
 
-        #Switch turns
+        # Check for win after placement
+        if current_player == "AI" and check_win_in_any_position(board):
+            congratulations(current_player)
+            return
+
+        # Switch turns - the player who just placed becomes the selector next turn
         current_player = p2 if current_player == p1 else p1
-        #Update the status bar
-        update_status_bar_message(f"{p2 if current_player == p1 else p1}, select a token for {current_player} to place.")
+        
+        # Update status based on game mode
+        if is_ai_opponent:
+            if current_player == "AI":
+                update_status_bar_message(f"{p1}, select a token for AI to place.")
+            else:
+                # Human's turn to place - AI will select a piece after a delay
+                update_status_bar_message(f"{p1}, AI will select a piece for you to place...")
+                root.after(1000, ai_select_token_for_human)
+        else:
+            # In human vs human, the other player now selects a piece
+            update_status_bar_message(f"{p2 if current_player == p1 else p1}, select a token for {current_player} to place.")
 
-        #If there is an AI opponent and it is player 1s turn, have ai select token for player 1
-        if is_ai_opponent and current_player != "AI":
-            root.after(1000, handle_ai_turn)  #Delay for 1 second to make it feel natural
+def ai_select_token_for_human():
+    """AI selects a token for the human player to place"""
+    global selected_piece, piece_selected_for_placement, current_player
+    
+    if not unplacedTokenList:
+        return
+        
+    # Select a token using the existing AI logic
+    selected_piece = ai_select_token()
+    if selected_piece:
+        piece_selected_for_placement = True
+        current_player = p1  # Switch to human player to place the selected piece
+        update_status_bar_message(f"{p1}, place the selected piece on the board.")
+    else:
+        print("AI failed to select a token")
 
 def deleteToken(canvas, token):
     """Deletes a token from canvas by drawing over it """
@@ -453,7 +511,11 @@ def check_board_button_function():
 
 def congratulations(player):
     """message box will appear and will congratulate user and ask to play again"""
-    response = messagebox.askyesno("Quarto!", "Congratulations! You won!\n\nPlay again?")
+    global p1, p2, current_player, is_ai_opponent
+    if is_ai_opponent and current_player == "AI":
+        response = messagebox.askyesno("Quarto!", "The AI has won!\n\nPlay again?")
+    else:
+        response = messagebox.askyesno("Quarto!", "Congratulations! You won!\n\nPlay again?")
     if response:  #yes
         show_name_screen()  #reset the game
     else:  #no
@@ -652,30 +714,6 @@ def ai_place_token(token):
     else:
         print("No available positions to place the token!")
 
-def handle_ai_turn():
-    '''Handles the AI's turn. Selects a token for the human and places a token provided by the human.'''
-    global selected_piece, piece_selected_for_placement, current_player, p1, p2, is_ai_opponent
-
-    if current_player == p2:  # Ensure AI only acts when it's its turn
-        if selected_piece:
-            print(f"AI placing token: {selected_piece.get_id()}")
-            ai_place_token(selected_piece)
-            selected_piece = None
-            piece_selected_for_placement = False
-        else:
-            print("AI has no token to place")
-
-        selected_piece = ai_select_token()
-        piece_selected_for_placement = True
-
-        if selected_piece:
-            print(f"AI selected token for human: {selected_piece.get_id()}")
-        else:
-            print("AI failed to select a token")
-
-        current_player = p1  # Give control back to the human player
-
-
 def show_name_screen():
     """ Displays a screen for players to enter their names on the root window. """
     #Clear the root window
@@ -704,7 +742,6 @@ def show_name_screen():
             player2 = "AI"
             is_ai_opponent = True
 
-
         #Clear the root window and initialize the game
         for widget in root.winfo_children():
             widget.destroy()
@@ -720,9 +757,9 @@ def update_status_bar_message(message):
 
 def initialize_game(player1, player2):
     """ Initializes the game board with the given player names."""
-    global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar, current_player, p1, p2, piece_selected_for_placement, win_combobox, row_combobox, selected_piece
+    global canvas, placed_board_pieces, board, unplacedTokenList, dict_coords, status_bar, current_player, p1, p2, piece_selected_for_placement, win_combobox, row_combobox, selected_piece, is_ai_opponent
 
-    #initialize a bunch of stuff
+    # initialize a bunch of stuff
     p1 = player1
     p2 = player2
     current_player = player1
@@ -733,18 +770,18 @@ def initialize_game(player1, player2):
     tk.Label(root, text=f"Quarto: {player1} vs {player2}", font=("Arial", 20)).pack(pady=10)
     canvas = tk.Canvas(root, width=1000, height=600, bg="white")
     canvas.pack()
-    placed_board_pieces = []  #List of objects that have been placed on the board
+    placed_board_pieces = []  # List of objects that have been placed on the board
 
-    board = []  #Represents the board. Starts out as None for all items.
+    board = []  # Represents the board. Starts out as None for all items.
     for _ in range(4):
         row = []
         for _ in range(4):
             row.append(None)
         board.append(row)
 
-    #Get squares
+    # Get squares
     dict_coords = drawBoard(canvas)
-    #I put this here agin because it kept saying it wasnt being called
+    # I put this here agin because it kept saying it wasnt being called
     global unplacedTokenList
     unplacedTokenList = []
     unplacedTokenList.clear()
@@ -766,69 +803,61 @@ def initialize_game(player1, player2):
         Token(750, 400, "red", False, "large", "square"),
         Token(850, 400, "red", True, "large", "square"),
     ]
-    #Initially draw tokens on screen
+    # Initially draw tokens on screen
     for token in unplacedTokenList:
         drawToken(canvas, token)
 
-    #Create a Frame for aligning the button and win conditions in the same row
+    # Create a Frame for aligning the button and win conditions in the same row
     controls_frame = tk.Frame(root)
     controls_frame.pack(pady=10)
 
-    #Label for the Call Quarto button
+    # Label for the Call Quarto button
     tk.Label(controls_frame, text="Actions:", font=("Arial", 14)).grid(row=0, column=0, padx=10)
 
-    #Call Quarto button
+    # Call Quarto button
     victory_button = tk.Button(controls_frame, text="Call Quarto!", font=("Arial", 14), command=check_board_button_function)
     victory_button.grid(row=1, column=0, padx=10)
 
-    #Label for the Win Condition dropdown
+    # Label for the Win Condition dropdown
     tk.Label(controls_frame, text="Select Win Condition:", font=("Arial", 14)).grid(row=0, column=1, padx=10)
 
-    #Win Condition Combo Box
+    # Win Condition Combo Box
     win_conditions = ["Same Size", "Same Color", "Same Shape", "Same Fill"]
     win_combobox = ttk.Combobox(controls_frame, values=win_conditions, state="readonly", font=("Arial", 14))
-    win_combobox.set("Select a win condition")  #Default text
+    win_combobox.set("Select a win condition")  # Default text
     win_combobox.grid(row=1, column=1, padx=10)
 
-    #Label for the Row Selection dropdown
+    # Label for the Row Selection dropdown
     tk.Label(controls_frame, text="Choose a Row or Column:", font=("Arial", 14)).grid(row=0, column=2, padx=10)
 
-    #Row Selection Combo Box
+    # Row Selection Combo Box
     row_conditions = ["1st row", "2nd row", "3rd row", "4th row",
                       "1st column", "2nd column", "3rd column", "4th column",
                       "Left to Right Diagonal", "Right to Left Diagonal"]
 
     row_combobox = ttk.Combobox(controls_frame, values=row_conditions, state="readonly", font=("Arial", 14))
-    row_combobox.set("Select a row/column")  #Default text
+    row_combobox.set("Select a row/column")  # Default text
     row_combobox.grid(row=1, column=2, padx=10)
 
-    #Status bar
+    # Status bar
     status_bar = tk.Label(root, text=f"{p2}, select a token for {p1} to place.", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Arial", 18))
     status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-    canvas.bind("<Motion>", highlightBoth)  #Highlight on mouse movement
+    canvas.bind("<Motion>", highlightBoth)  # Highlight on mouse movement
     canvas.bind("<Button-1>", selectToken)
     canvas.bind("<ButtonRelease-1>", placeToken)
-    # debugging :(
+    
+    # If AI is opponent, have AI select first token for human
     if is_ai_opponent:
-        print("AI is selecting a token for human at game start...")
-        selected_piece = ai_select_token()
-        piece_selected_for_placement = True
-        if selected_piece:
-            print(f"AI selected token for player: {selected_piece.get_id()}")
-        else:
-            print("AI failed to select a token at game start")
+        root.after(1000, ai_select_token_for_human)
 
-    root.after(1000, handle_ai_turn)
-    handle_ai_turn() #See ai token selection when game first starts. Should be a better way to do this
 def exit_fullscreen(event=None):
     root.destroy()  #Close the application
-
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Quarto Game")
-    root.attributes("-fullscreen", True)  #Enable full-screen mode
-    show_name_screen()  #Display the name entry screen
+    root.attributes("-fullscreen", True)  # Enable full-screen mode
+    show_name_screen()  # Display the name entry screen
     root.bind("<Escape>", exit_fullscreen)
     root.mainloop()
