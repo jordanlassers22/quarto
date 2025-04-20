@@ -686,17 +686,31 @@ def ai_place_token(token):
                 if grid_label not in placed_board_pieces:
                     available_positions.append(grid_label)
 
-    # If there are available positions, place the token randomly
+
+    
+    #If there are available positions, place the token randomly
     if available_positions:
-        # Set up globals as placeToken expects
         selected_piece = token
         piece_selected_for_placement = True
 
-        # Choose a random position
-        random_pos = random.choice(available_positions)
-        print(f"AI placing {token.get_id()} at {random_pos}")
-        # Get the coordinates from dict_coords for the chosen position
-        top_left_x, top_left_y = dict_coords[random_pos]
+       #Try to find a winning move first
+        chosen_pos = None
+        for pos in available_positions:
+            row = int(pos[1]) - 1
+            col = ord(pos[0]) - ord('A')
+            board[row][col] = token.get_id()
+            if check_win_in_any_position(board):
+                board[row][col] = None  #Undo test move
+                chosen_pos = pos
+                break
+            board[row][col] = None  #Undo test move
+        
+        #If no winning move found, pick randomly
+        if not chosen_pos:
+            chosen_pos = random.choice(available_positions)
+        
+        print(f"AI placing {token.get_id()} at {chosen_pos}")
+        top_left_x, top_left_y = dict_coords[chosen_pos]
         # Simulate mouse click in the center of the grid square (100x100)
         mouse_x = top_left_x + 50
         mouse_y = top_left_y + 50
