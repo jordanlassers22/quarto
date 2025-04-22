@@ -494,25 +494,29 @@ def check_board_button_function():
     if not row_col_info:
         print("Please select a valid row/column/diagonal.")
         return
+    if is_ai_opponent:
+        caller = p1
+    else:
+        caller = current_player
 
     #Check for a win
     if row_col_info[1] == "row":
         if check_row(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
-            congratulations(current_player)
+            congratulations(caller)
     elif row_col_info[1] == "column":
         if check_column(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
-            congratulations(current_player)
+            congratulations(caller)
     elif row_col_info[1] == "diagonal":
         if check_diagonal(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
-            congratulations(current_player)
+            congratulations(caller)
 
 def congratulations(player):
     """message box will appear and will congratulate user and ask to play again"""
     global p1, p2, current_player, is_ai_opponent
-    if is_ai_opponent and current_player == "AI":
+    if is_ai_opponent and player == "AI":
         response = messagebox.askyesno("Quarto!", "The AI has won!\n\nPlay again?")
     else:
         response = messagebox.askyesno("Quarto!", "Congratulations! You won!\n\nPlay again?")
