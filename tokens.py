@@ -459,9 +459,9 @@ def check_row(board, row, characteristic):
     return True #Returns True if every specific letter from token id matches. Can target different id letters by changing the index.
 
 def check_board_button_function():
-    #Get dropdown win
+    # Get dropdown win
     win_condition = win_combobox.get()
-    #Get the dropdown selection
+    # Get the dropdown selection
     row_col_selection = row_combobox.get()
 
     characteristic_map = {
@@ -476,7 +476,7 @@ def check_board_button_function():
         print("Please select a valid win condition.")
         return
 
-    #Map correspondingly
+    # Map correspondingly
     row_col_map = {
         "1st row": (0, "row"),
         "2nd row": (1, "row"),
@@ -494,12 +494,11 @@ def check_board_button_function():
     if not row_col_info:
         print("Please select a valid row/column/diagonal.")
         return
-    if is_ai_opponent:
-        caller = p1
-    else:
-        caller = current_player
 
-    #Check for a win
+    # Always treat the player as the winner if AI is the opponent
+    caller = p1 if is_ai_opponent else current_player
+
+    # Check for a win
     if row_col_info[1] == "row":
         if check_row(board, row_col_info[0], characteristic):
             print(f"Win detected in {row_col_selection} with {win_condition}!")
