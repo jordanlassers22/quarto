@@ -6,6 +6,7 @@ from tkinter import messagebox
 import random
 
 is_ai_opponent = False #Flag to signal whether AI is turned off or on
+ai_difficulty = None # AI difficulty global variable
 
 class Token:
     """
@@ -626,31 +627,39 @@ def check_board_state():
 
 def ai_select_token():
     """AI selects a token for the human player to place. Returns a token that is to be placed"""
-    global unplacedTokenList, board
+    global unplacedTokenList, board, ai_difficulty
 
-    #Try's to avoid selecting a piece that lets the human win immediately
-    safe_tokens = []
-    for token in unplacedTokenList:
-        #Try placing a token in each slot and see what happens
-        winning_piece = False
-        for row in range(4):
-            for col in range(4):
-                if board[row][col] is None:
-                    #Temporarily place the token
-                    board[row][col] = token.get_id()
-                    if check_win_in_any_position(board):
-                        winning_piece = True
-                    board[row][col] = None  #Undo the placed token
-                    if winning_piece:
-                        break
-            if winning_piece:
-                break
-        if not winning_piece:
-            safe_tokens.append(token)
+    # If medium or hard, avoid winning piece for player1
+    if ai_difficulty == "hard" or ai_difficulty == "medium":
+        #Try's to avoid selecting a piece that lets the human win immediately
+        safe_tokens = []
+        for token in unplacedTokenList:
+            #Try placing a token in each slot and see what happens
+            winning_piece = False
+            for row in range(4):
+                for col in range(4):
+                    if board[row][col] is None:
+                        #Temporarily place the token
+                        board[row][col] = token.get_id()
+                        if check_win_in_any_position(board):
+                            winning_piece = True
+                        board[row][col] = None  #Undo the placed token
+                        if winning_piece:
+                            break
+                if winning_piece:
+                    break
+            if not winning_piece:
+                safe_tokens.append(token)
 
-    #Pick a token
-    if safe_tokens:
-        selected_piece = random.choice(safe_tokens)
+        #Pick a token
+        if safe_tokens:
+            selected_piece = random.choice(safe_tokens)
+        elif unplacedTokenList:
+            selected_piece = random.choice(unplacedTokenList)
+        else:
+            print("ERROR: AI could not select a token. No tokens left!")
+            return None
+    # Easy mode - pick random
     elif unplacedTokenList:
         selected_piece = random.choice(unplacedTokenList)
     else:
@@ -679,7 +688,7 @@ def ai_place_token(token):
     Parameters:
         token: token to be placed on board
     '''
-    global board, placed_board_pieces, selected_piece, piece_selected_for_placement
+    global board, placed_board_pieces, selected_piece, piece_selected_for_placement, ai_difficulty
     # Find all available positions
     available_positions = []
     for row in range(4):
@@ -689,27 +698,31 @@ def ai_place_token(token):
                 if grid_label not in placed_board_pieces:
                     available_positions.append(grid_label)
 
-
-    
-    #If there are available positions, place the token randomly
+    #If there are available positions, place the token
     if available_positions:
         selected_piece = token
         piece_selected_for_placement = True
 
-       #Try to find a winning move first
-        chosen_pos = None
-        for pos in available_positions:
-            row = int(pos[1]) - 1
-            col = ord(pos[0]) - ord('A')
-            board[row][col] = token.get_id()
-            if check_win_in_any_position(board):
+        # Find winning move only for hard mode
+        if ai_difficulty == "hard":
+        #Try to find a winning move first
+            chosen_pos = None
+            for pos in available_positions:
+                row = int(pos[1]) - 1
+                col = ord(pos[0]) - ord('A')
+                board[row][col] = token.get_id()
+                if check_win_in_any_position(board):
+                    board[row][col] = None  #Undo test move
+                    chosen_pos = pos
+                    break
                 board[row][col] = None  #Undo test move
-                chosen_pos = pos
-                break
-            board[row][col] = None  #Undo test move
+            
+            #If no winning move found, pick randomly
+            if not chosen_pos:
+                chosen_pos = random.choice(available_positions)
         
-        #If no winning move found, pick randomly
-        if not chosen_pos:
+        # easy and medium modes choose random token
+        else:
             chosen_pos = random.choice(available_positions)
         
         print(f"AI placing {token.get_id()} at {chosen_pos}")
@@ -755,9 +768,16 @@ def show_name_screen():
         player1 = player1_entry.get().strip() or "Player 1"
         player2 = player2_entry.get().strip() or "Player 2"
 
-        if player2.upper() == "AI":
+        if player2.upper().startswith("AI"):
             player2 = "AI"
             is_ai_opponent = True
+            # Make default difficulty easy
+            if player2.upper() == "AI_HARD":
+                ai_difficulty = "hard"
+            elif player2.upper() == "AI_MEDIUM":
+                ai_difficulty = "medium"
+            else:
+                ai_difficulty = "easy"
 
         #Clear the root window and initialize the game
         for widget in root.winfo_children():
