@@ -751,6 +751,7 @@ def show_name_screen():
         widget.destroy()
 
     tk.Label(root,text="QUARTO",font=("Comic Sans MS", 60, "bold"),fg="#FF5733", bg="white").pack(pady=100)
+
     #Add labels and input widgets for player names
     tk.Label(root, text="Player 1 Name:", font=("Arial", 18)).pack(pady=5)
     player1_entry = tk.Entry(root, font=("Arial", 18))
@@ -759,6 +760,18 @@ def show_name_screen():
     tk.Label(root, text="Player 2 Name:", font=("Arial", 18)).pack(pady=5)
     player2_entry = tk.Entry(root, font=("Arial", 18))
     player2_entry.pack(pady=5)
+
+     # AI Instructions
+    tk.Label(
+        root,
+        text="To play against AI, set Player 2's name to one of the following:\n"
+             "- ai_easy\n"
+             "- ai_medium\n"
+             "- ai_hard",
+        font=("Arial", 12),
+        fg="blue",
+        justify="left"
+    ).pack(pady=10)
 
 
     #Function runs when start_game button is clicked. Keep indented one more than parent function.
