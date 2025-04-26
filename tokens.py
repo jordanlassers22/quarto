@@ -703,26 +703,24 @@ def ai_place_token(token):
         selected_piece = token
         piece_selected_for_placement = True
 
-        # Find winning move only for hard mode
-        if ai_difficulty == "hard":
         #Try to find a winning move first
-            chosen_pos = None
-            for pos in available_positions:
-                row = int(pos[1]) - 1
-                col = ord(pos[0]) - ord('A')
-                board[row][col] = token.get_id()
-                if check_win_in_any_position(board):
-                    board[row][col] = None  #Undo test move
-                    chosen_pos = pos
-                    break
+        chosen_pos = None
+        for pos in available_positions:
+            row = int(pos[1]) - 1
+            col = ord(pos[0]) - ord('A')
+            board[row][col] = token.get_id()
+            if check_win_in_any_position(board):
                 board[row][col] = None  #Undo test move
-            
-            #If no winning move found, pick randomly
-            if not chosen_pos:
-                chosen_pos = random.choice(available_positions)
+                chosen_pos = pos
+                break
+            board[row][col] = None  #Undo test move
+        
+        #If no winning move found, pick randomly
+        if not chosen_pos:
+            chosen_pos = random.choice(available_positions)
         
         # easy and medium modes choose random token
-        else:
+        if ai_difficulty == "easy" or ai_difficulty == "medium":
             chosen_pos = random.choice(available_positions)
         
         print(f"AI placing {token.get_id()} at {chosen_pos}")
@@ -777,7 +775,7 @@ def show_name_screen():
     #Function runs when start_game button is clicked. Keep indented one more than parent function.
     def start_game():
         """ Start the game with entered player names. Toggles AI if player 2s name is ai """
-        global is_ai_opponent
+        global is_ai_opponent, ai_difficulty
         player1 = player1_entry.get().strip() or "Player 1"
         player2 = player2_entry.get().strip() or "Player 2"
 
